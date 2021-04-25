@@ -4,11 +4,13 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.1",
     "koa-jwt": "^4.0.1",
     "koa-router": "^10.0.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.1",
     "@types/koa": "^2.13.1",
     "@types/koa-router": "^7.4.2",
     "ts-node": "^9.1.1",
