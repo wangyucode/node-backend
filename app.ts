@@ -1,11 +1,11 @@
 import * as Koa from 'koa';
 import * as jwt from 'koa-jwt';
 import * as Router from '@koa/router';
-import * as bodyParser from 'koa-bodyparser';
 import {login} from './auth';
 import {setNews} from './admin/dota';
 import {getNews} from './public/dota';
 import {JWT_SECRET} from "./const";
+import bodyParser = require("koa-bodyparser");
 
 const app = new Koa();
 
