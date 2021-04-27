@@ -8,6 +8,7 @@ import bodyParser = require("koa-bodyparser");
 import { CronJob } from 'cron';
 import * as log4js from 'log4js';
 import * as dotenv from 'dotenv';
+import { crawlNews } from './crawler/news';
 
 // log
 log4js.configure({
@@ -47,6 +48,7 @@ app.listen(3000);
 // cron jobs
 const dailyJob = new CronJob('3 58 2 * * *', function () {
     logger.info("corn job started!");
+    crawlNews();
 });
 logger.debug(dailyJob.nextDates(10));
 dailyJob.start();
