@@ -20,8 +20,8 @@
     "@types/jest": "^26.0.23",
     "@types/jsonwebtoken": "^8.5.1",
     "@types/koa": "^2.13.1",
-    "@types/koa-bodyparser": "^4.3.0",
     "@types/koa__router": "^8.0.4",
+    "@types/koa-bodyparser": "^4.3.0",
     "jest": "^26.6.3",
     "ts-jest": "^26.5.5",
     "ts-node": "^9.1.1",
@@ -32,5 +32,9 @@
     "test": "jest"
   },
   "author": "wycode.cn",
-  "license": "ISC"
+  "license": "ISC",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
 }

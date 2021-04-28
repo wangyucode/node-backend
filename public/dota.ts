@@ -1,7 +1,6 @@
-import { Context } from "koa";
-import {APP_STATE} from "../const";
-
+import {Context} from "koa";
+import {news} from "../crawler/news";
 
 export function getNews(ctx: Context) {
-    ctx.body = APP_STATE.dotaNews;
+    ctx.body = news;
 }
