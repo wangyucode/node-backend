@@ -12,7 +12,7 @@ export async function crawlNews() {
     const url = Buffer.from('aHR0cHM6Ly93d3cuZG90YTIuY29tLmNuL25ld3MvaW5kZXg=', "base64").toString('utf-8');
     logger.debug(url);
     const browser = await puppeteer.launch({
-        devtools: true,
+        devtools: process.env.PROD !== 'true',
         defaultViewport: null
     });
     const pages = await browser.pages();
