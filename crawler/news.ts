@@ -8,6 +8,7 @@ export let newsDetail: Map<string, DotaNewsNode[]> = new Map<string, DotaNewsNod
 
 export async function crawlNews() {
     news = [];
+    newsDetail.clear();
     const url = Buffer.from('aHR0cHM6Ly93d3cuZG90YTIuY29tLmNuL25ld3MvaW5kZXg=', "base64").toString('utf-8');
     logger.debug(url);
     const browser = await puppeteer.launch({
@@ -66,12 +67,14 @@ export async function crawlNews() {
             });
             return detail;
         });
-        logger.debug(news);
-        logger.debug(detail);
+        it.href = it.href.match(/.*\/(.+)\.html$/)[1];
         newsDetail.set(it.href, detail);
         // TODO
         break;
     }
+
+    logger.debug(news);
+    logger.debug(newsDetail);
 
     await browser.close();
 }
