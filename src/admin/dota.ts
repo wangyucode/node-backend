@@ -6,7 +6,7 @@ export let news = [];
 export const newsDetail: Map<string, DotaNewsNode[]> = new Map();
 
 export function setNews(ctx: Context) {
-    news.push(...ctx.request.body);
+    news = ctx.request.body;
     ctx.body = getDataResult(news.length);
 }
 
@@ -16,7 +16,6 @@ export function setNewsDetail(ctx: Context) {
 }
 
 export function clearNews(ctx: Context) {
-    news = [];
     newsDetail.clear();
     ctx.body = getDataResult(0);
 }
