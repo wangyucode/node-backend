@@ -51,7 +51,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: wangyucode/node-backend
           tag_with_ref: true
-      - name: Push to GitHub Packages
+      - name: Push to Aliyun
         uses: docker/build-push-action@v1
         with:
           username: www_wayne_001@163.com
