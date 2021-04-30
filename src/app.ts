@@ -1,5 +1,6 @@
 import * as Koa from 'koa';
 import * as jwt from 'koa-jwt';
+// import {CronJob} from 'cron';
 import * as Router from '@koa/router';
 import {login} from './auth';
 import {clearNews, setNews, setNewsDetail} from './admin/dota';
