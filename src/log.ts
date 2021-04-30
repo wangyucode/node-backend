@@ -12,7 +12,7 @@ log4js.configure({
     }
 });
 // env
-dotenv.config({debug: true});
+dotenv.config();
 export const logger = log4js.getLogger(process.env.ENV === 'prod' ? 'prod' : 'default');
 
 logger.info("process.env.ENV->", process.env.ENV);

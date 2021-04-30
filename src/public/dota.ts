@@ -1,5 +1,5 @@
 import {Context} from "koa";
-import {news, newsDetail} from "../crawler/news";
+import { news, newsDetail } from "../admin/dota";
 import {Page} from "../types";
 import {getDataResult, getErrorResult} from "../utils";
 
