@@ -5,17 +5,23 @@ import {login} from './auth';
 // import {setNews} from './admin/dota';
 import {getNews, getNewsDetail} from './public/dota';
 import {CronJob} from 'cron';
-import * as dotenv from 'dotenv';
 import {crawlNews} from './crawler/news';
-import bodyParser = require("koa-bodyparser");
 import {logger} from "./log";
-
-
-// env
-dotenv.config({debug: true});
+import {getErrorResult} from "./utils";
+import bodyParser = require("koa-bodyparser");
 
 // koa server
 const app = new Koa();
+
+app.use(async (ctx, next) => {
+    try {
+        await next();
+    } catch (err) {
+        // will only respond with JSON
+        ctx.status = err.statusCode || err.status || 500;
+        ctx.body = getErrorResult(err.message);
+    }
+});
 
 app.use(bodyParser());
 
@@ -31,7 +37,8 @@ router.get('/login', login);
 app.use(router.routes())
     .use(router.allowedMethods());
 
-app.listen(3000);
+
+app.listen(8082);
 
 // cron jobs
 const dailyJob = new CronJob('3 58 2 * * *', function () {

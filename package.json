@@ -28,7 +28,7 @@
     "typescript": "^4.2.4"
   },
   "scripts": {
-    "start": "ts-node app.ts",
+    "start": "ts-node src/app.ts",
     "build": "tsc",
     "test": "jest"
   },
