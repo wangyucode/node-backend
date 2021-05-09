@@ -2,7 +2,7 @@ import { Db, MongoClient } from "mongodb"
 import { logger } from "./log";
 
 
-const uri = `mongodb://localhost:27017`
+const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, { useUnifiedTopology: true });
 
