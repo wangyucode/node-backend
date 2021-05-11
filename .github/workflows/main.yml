@@ -58,4 +58,5 @@ jobs:
       #     repository: wangyucode/node-backend
       #     tag_with_ref: true
       - name: Call watchtower to check image
-        run: curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
