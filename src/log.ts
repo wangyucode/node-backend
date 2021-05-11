@@ -7,7 +7,7 @@ log4js.configure({
         file: {type: 'file', filename: 'log/app.log'}
     },
     categories: {
-        default: {appenders: ['stdout'], level: 'debug'},
+        default: {appenders: ['stdout', 'file'], level: 'debug'},
         prod: {appenders: ['stdout', 'file'], level: 'info'}
     }
 });

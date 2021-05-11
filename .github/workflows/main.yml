@@ -49,11 +49,13 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: wangyucode/node-backend
           tag_with_ref: true
-      - name: Push to Aliyun
-        uses: docker/build-push-action@v1
-        with:
-          username: www_wayne_001@163.com
-          password: ${{ secrets.ALIYUN_PASSWORD }}
-          registry: registry.cn-zhangjiakou.aliyuncs.com
-          repository: wangyucode/node-backend
-          tag_with_ref: true
+      # - name: Push to Aliyun
+      #   uses: docker/build-push-action@v1
+      #   with:
+      #     username: www_wayne_001@163.com
+      #     password: ${{ secrets.ALIYUN_PASSWORD }}
+      #     registry: registry.cn-zhangjiakou.aliyuncs.com
+      #     repository: wangyucode/node-backend
+      #     tag_with_ref: true
+      - name: Call watchtower to check image
+        run: curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
