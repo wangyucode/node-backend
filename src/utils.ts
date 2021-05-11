@@ -4,8 +4,8 @@ export function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export function getDataResult(data: any): CommonResult {
-    return {data, success: true};
+export function getDataResult(payload: any): CommonResult {
+    return {payload, success: true};
 }
 
 export function getErrorResult(message?: string): CommonResult {

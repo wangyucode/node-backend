@@ -1,6 +1,6 @@
 export interface CommonResult {
     success: boolean;
-    data?: any;
+    payload?: any;
     message?: string;
 }
 
@@ -8,7 +8,7 @@ export interface Page {
     page: number;
     size: number;
     total: number;
-    data: any[];
+    items: any[];
 }
 
 export interface DotaNews {

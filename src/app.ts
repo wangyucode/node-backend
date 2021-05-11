@@ -8,6 +8,9 @@ import {getNews, getNewsDetail} from './public/dota';
 import {logger} from "./log";
 import {getErrorResult} from "./utils";
 import bodyParser = require("koa-bodyparser");
+import { connectToDb } from './mongo';
+import { getConfig } from './public/common';
+import { deleteConfig, setConfig } from './admin/common';
 
 // koa server
 const app = new Koa();
@@ -26,11 +29,14 @@ app.use(bodyParser());
 
 const router = new Router({prefix: '/node'});
 
+router.get('/config', getConfig);
 router.get('/dota/news', getNews);
 router.get('/dota/news/:id', getNewsDetail);
 router.get('/login', login);
 // Middleware below this line is only reached if JWT token is valid
 router.use(jwt({secret: process.env.JWT_SECRET}));
+router.put('/admin/config', setConfig);
+router.delete('/admin/config', deleteConfig);
 router.put('/admin/dota/news', setNews);
 router.put('/admin/dota/news/:id', setNewsDetail);
 router.delete('/admin/dota/news', clearNews);
@@ -40,6 +46,9 @@ app.use(router.routes())
 
 
 app.listen(8082);
+
+connectToDb();
+
 logger.info('server listening on 8082')
 
 // cron jobs
