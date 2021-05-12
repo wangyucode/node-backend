@@ -17,6 +17,7 @@ const app = new Koa();
 
 app.use(async (ctx, next) => {
     try {
+        logger.info(ctx.header.authorization);
         await next();
     } catch (err) {
         // will only respond with JSON
