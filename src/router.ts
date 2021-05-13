@@ -4,7 +4,7 @@ import * as jwt from 'koa-jwt';
 import { getConfig } from './public/common';
 import { deleteConfig, setConfig } from './admin/common';
 import { login } from './auth';
-import { clearNews, putLeagues, setNews, setNewsDetail } from './admin/dota';
+import { clearNews, putLeagues, setNews, setNewsDetail, setTopNews } from './admin/dota';
 import { getLeagues, getNews, getNewsDetail } from './public/dota';
 
 export default function getRouter(): Router {
@@ -28,6 +28,7 @@ export default function getRouter(): Router {
     router.put('/admin/dota/news', setNews);
     router.put('/admin/dota/news/:id', setNewsDetail);
     router.delete('/admin/dota/news', clearNews);
+    router.put('/admin/dota/top', setTopNews);
 
     router.put('/admin/dota/leagues', putLeagues);
 
