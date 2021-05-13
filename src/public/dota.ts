@@ -1,5 +1,5 @@
 import {Context} from "koa";
-import { news, newsDetail } from "../admin/dota";
+import { leagues, news, newsDetail } from "../admin/dota";
 import {Page} from "../types";
 import {getDataResult, getErrorResult} from "../utils";
 
@@ -16,4 +16,9 @@ export function getNewsDetail(ctx: Context) {
     if (!ctx.params.id) ctx.throw(400, 'id required');
     const detail = newsDetail.get(ctx.params.id);
     ctx.body = detail ? getDataResult(detail) : getErrorResult('detail not exist');
+}
+
+
+export function getLeagues(ctx: Context) {
+    ctx.body = getDataResult(leagues);
 }
