@@ -3,6 +3,8 @@ import { DotaNews, DotaNewsNode } from "../types";
 import { getDataResult } from "../utils";
 
 export let leagues = [];
+export let schedules = [];
+export let teams = [];
 export let topNews : DotaNews = {
     href:'dev',
     img: 'https://wycode.cn/dota2static/dota2/b2dea7d0-e056-424f-a3e5-931e73a21e08.jpg',
@@ -13,7 +15,21 @@ export let topNews : DotaNews = {
 export let news = [topNews];
 export const newsDetail: Map<string, DotaNewsNode[]> = new Map();
 
+
+export function putSchedules(ctx: Context) {
+    if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
+    schedules = ctx.request.body;
+    ctx.body = getDataResult(schedules.length);
+}
+
+export function putTeams(ctx: Context) {
+    if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
+    teams = ctx.request.body;
+    ctx.body = getDataResult(teams.length);
+}
+
 export function setNews(ctx: Context) {
+    if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
     news = [topNews].concat(ctx.request.body);
     ctx.body = getDataResult(news.length);
 }
@@ -35,7 +51,6 @@ export function clearNews(ctx: Context) {
 
 export function putLeagues(ctx: Context) {
     if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
-    console.log(leagues);
     leagues = ctx.request.body;
     ctx.body = getDataResult(leagues.length);
 }
