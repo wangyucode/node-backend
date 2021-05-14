@@ -20,8 +20,8 @@ export default function getRouter(): Router {
     router.get('/dota/items', dota.getItems);
     router.get('/dota/items/:id', dota.getItemDetail);
 
-    router.get('/dota/heros', dota.getHeros);
-    router.get('/dota/heros/:id', dota.getHeroDetail);
+    router.get('/dota/heroes', dota.getHeros);
+    router.get('/dota/heroes/:id', dota.getHeroDetail);
 
     router.get('/login', auth.login);
 
