@@ -1,15 +1,29 @@
 import { Context } from "koa";
-import { leagues, news, newsDetail, topNews } from "../admin/dota";
+import { leagues, news, newsDetail, schedules, teams, topNews } from "../admin/dota";
 import { db } from "../mongo";
 import { getDataResult, getErrorResult } from "../utils";
+import { leaderboard} from '../cron';
 
-export function getNews(ctx: Context) {
+
+export async function getLeaderboard(ctx: Context) {
     let page = Number.parseInt(ctx.query.page as string);
     let size = Number.parseInt(ctx.query.size as string);
     if (Number.isNaN(size) || size <= 0) ctx.throw(400, 'size required');
     if (Number.isNaN(page) || page < 0) page = 0;
-    const items = ctx.query.version === 'dev' ? [topNews] : news.slice(page * size, page * size + size);
-    const total = ctx.query.version === 'dev' ? 1 : news.length;
+    const items = leaderboard.slice(page * size, page * size + size);
+    const total = leaderboard.length;
+    ctx.body = getDataResult({ page, size, items, total });
+}
+
+export async function getNews(ctx: Context) {
+    let page = Number.parseInt(ctx.query.page as string);
+    let size = Number.parseInt(ctx.query.size as string);
+    if (Number.isNaN(size) || size <= 0) ctx.throw(400, 'size required');
+    if (Number.isNaN(page) || page < 0) page = 0;
+    const configs = db.collection('wyConfig');
+    const version = await configs.findOne({_id: 'CONFIG_DOTA_VERSION'});
+    const items = version === 'dev' ? [topNews] : news.slice(page * size, page * size + size);
+    const total = version === 'dev' ? 1 : news.length;
     ctx.body = getDataResult({ page, size, items, total });
 }
 
@@ -19,9 +33,18 @@ export function getNewsDetail(ctx: Context) {
     ctx.body = detail ? getDataResult(detail) : getErrorResult('detail not exist');
 }
 
+export function getSchedules(ctx: Context) {
+    ctx.body = getDataResult(schedules);
+}
+
+export function getTeams(ctx: Context) {
+    ctx.body = getDataResult(teams);
+}
+
 export function getLeagues(ctx: Context) {
     ctx.body = getDataResult(leagues);
 }
+
 
 export async function getItems(ctx: Context) {
     const itemsDb = db.collection('mongoDotaItem');
