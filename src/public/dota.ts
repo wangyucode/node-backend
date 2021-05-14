@@ -43,11 +43,6 @@ export async function getItemDetail(ctx: Context) {
     const result = await itemsDb.findOne({ _id: ctx.params.id }, {
         projection: {
             "_id": 0,
-            "type": 0,
-            "name": 0,
-            "img": 0,
-            "cost": 0,
-            "cname": 0,
             "_class": 0
         }
     });
@@ -56,13 +51,17 @@ export async function getItemDetail(ctx: Context) {
 
 export async function getHeros(ctx: Context) {
     const itemsDb = db.collection('mongoDota2Hero');
-    const result = await itemsDb.find().toArray();
+    const result = await itemsDb.find(null,{
+        projection: {
+            "_class": 0
+        }
+    }).toArray();
     ctx.body = getDataResult(result);
 }
 
 export async function getHeroDetail(ctx: Context) {
     if (!ctx.params.id) ctx.throw(400, 'id required');
     const itemsDb = db.collection('mongoHeroDetail');
-    const result = await itemsDb.findOne({ _id: ctx.params.id });
+    const result = await itemsDb.findOne({ _id: decodeURIComponent(ctx.params.id)});
     ctx.body = getDataResult(result);
 }
