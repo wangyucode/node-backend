@@ -11,6 +11,7 @@ export default function getRouter(): Router {
     const router = new Router({ prefix: '/node' });
 
     router.get('/config', common.getConfig);
+    router.post('/comments', common.postComment);
 
     router.get('/dota/news', dota.getNews);
     router.get('/dota/news/:id', dota.getNewsDetail);

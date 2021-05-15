@@ -8,7 +8,6 @@ import { connectToDb } from './mongo';
 import getRouter from './router';
 import setupCron from './cron';
 
-
 // koa server
 const app = new Koa();
 
@@ -37,4 +36,4 @@ connectToDb();
 logger.info('server listening on 8082')
 
 //cron jobs
-setupCron();
+if(process.env.ENV === 'prod') setupCron();
