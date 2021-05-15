@@ -8,7 +8,7 @@ export let topNews : DotaNews = {
     href:'dev',
     img: 'https://wycode.cn/dota2static/dota2/b2dea7d0-e056-424f-a3e5-931e73a21e08.jpg',
     title: '更新通知',
-    content: '添加中立物品支持，更新数据库至7.29c',
+    content: 'DOTA2小助手1.7已发布！添加中立物品支持，更新数据库至7.29c',
     date: '2021-05-14'
 };
 export let news = [topNews];
