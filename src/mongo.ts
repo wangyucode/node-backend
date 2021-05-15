@@ -6,9 +6,18 @@ const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, { useUnifiedTopology: true });
 
-export let db :Db;
+export let db: Db;
 
-export async function connectToDb(){
+export enum COLLECTIONS {
+    COMMENT_APP = 'mongoCommentApp',
+    DOTA_ITEM = 'mongoDotaItem',
+    DOTA_HERO = 'mongoDota2Hero',
+    DOTA_HERO_DETAIL = 'mongoHeroDetail',
+    COMMENT = 'mongoComment',
+    CONFIG = 'wyConfig'
+}
+
+export async function connectToDb() {
     try {
         // Connect the client to the server
         await client.connect();
@@ -16,7 +25,7 @@ export async function connectToDb(){
         db = await client.db("wycode");
         await db.command({ ping: 1 });
         logger.info("Connected successfully to mongodb");
-    } catch(e){
+    } catch (e) {
         logger.error("mongo connect error", e);
     }
 }
