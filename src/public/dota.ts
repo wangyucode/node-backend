@@ -1,8 +1,8 @@
 import { Context } from "koa";
-import { leagues, news, newsDetail, schedules, teams, topNews } from "../admin/dota";
+import { leagues, news, newsDetail, schedules, topNews } from "../admin/dota";
 import { db } from "../mongo";
 import { getDataResult, getErrorResult } from "../utils";
-import { leaderboard} from '../cron';
+import { leaderboard, teams} from '../cron';
 
 
 export async function getLeaderboard(ctx: Context) {
@@ -22,8 +22,8 @@ export async function getNews(ctx: Context) {
     if (Number.isNaN(page) || page < 0) page = 0;
     const configs = db.collection('wyConfig');
     const version = await configs.findOne({_id: 'CONFIG_DOTA_VERSION'});
-    const items = version === 'dev' ? [topNews] : news.slice(page * size, page * size + size);
-    const total = version === 'dev' ? 1 : news.length;
+    const items = version.value === 'dev' ? [topNews] : news.slice(page * size, page * size + size);
+    const total = version.value === 'dev' ? 1 : news.length;
     ctx.body = getDataResult({ page, size, items, total });
 }
 
