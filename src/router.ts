@@ -38,6 +38,7 @@ export default function getRouter(): Router {
     // TODO delete
     router.put('/admin/dota/top', admin_dota.setTopNews);
     router.put('/admin/dota/schedules', admin_dota.putSchedules);
+    router.put('/admin/dota/leagues', admin_dota.putLeagues);
 
     return router;
 }
