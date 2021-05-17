@@ -47,3 +47,11 @@ export function putLeagues(ctx: Context) {
     leagues = ctx.request.body;
     ctx.body = getDataResult(leagues.length);
 }
+
+
+export async function postHero(ctx: Context){
+    const configs = db.collection(COLLECTIONS.CONFIG);
+    await configs.updateOne({ _id: ctx.query.k },
+        { $set: { _id: ctx.query.k, value: ctx.query.v, date: new Date() } },
+        { upsert: true });
+}
