@@ -1,11 +1,12 @@
 import { Context } from "koa";
+import { COLLECTIONS, db } from "../mongo";
 import { DotaNews, DotaNewsNode } from "../types";
 import { getDataResult } from "../utils";
 
 export let leagues = [];
 export let schedules = [];
-export let topNews : DotaNews = {
-    href:'dev',
+export let topNews: DotaNews = {
+    href: 'dev',
     img: 'https://wycode.cn/dota2static/dota2/b2dea7d0-e056-424f-a3e5-931e73a21e08.jpg',
     title: '更新通知',
     content: 'DOTA2小助手1.7已发布！添加中立物品支持，更新数据库至7.29c',
@@ -46,4 +47,18 @@ export function putLeagues(ctx: Context) {
     if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
     leagues = ctx.request.body;
     ctx.body = getDataResult(leagues.length);
+}
+
+
+export async function postHero(ctx: Context) {
+    if (!ctx.request.body.name || !ctx.request.body._id) ctx.throw(400, 'Invalid name');
+    const heros = db.collection(COLLECTIONS.DOTA_HERO_DETAIL);
+    const hero = ctx.request.body;
+    const result = await heros.updateOne({ $or: [{ _id: hero.name }, { _id: hero._id }] }, {
+        $set: hero,
+        $unset: { _class: "" }
+    }, {
+        upsert: true
+    });
+    ctx.body = getDataResult(result);
 }
