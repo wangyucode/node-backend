@@ -55,8 +55,7 @@ export async function postHero(ctx: Context) {
     const heros = db.collection(COLLECTIONS.DOTA_HERO_DETAIL);
     const hero = ctx.request.body;
     const result = await heros.updateOne({ $or: [{ _id: hero.name }, { _id: hero._id }] }, {
-        $set: hero,
-        $unset: { _class: "" }
+        $set: hero
     }, {
         upsert: true
     });
