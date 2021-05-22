@@ -11,7 +11,6 @@ export let db: Db;
 export enum COLLECTIONS {
     COMMENT_APP = 'mongoCommentApp',
     DOTA_ITEM = 'mongoDotaItem',
-    DOTA_HERO = 'mongoDota2Hero',
     DOTA_HERO_DETAIL = 'mongoHeroDetail',
     COMMENT = 'mongoComment',
     CONFIG = 'wyConfig'
