@@ -73,10 +73,12 @@ export async function getItemDetail(ctx: Context) {
 }
 
 export async function getHeros(ctx: Context) {
-    const itemsDb = db.collection(COLLECTIONS.DOTA_HERO);
+    const itemsDb = db.collection(COLLECTIONS.DOTA_HERO_DETAIL);
     const result = await itemsDb.find(null,{
         projection: {
-            "_class": 0
+            "icon": 1,
+            "type": 1,
+            "imageUrl":"$img",
         }
     }).toArray();
     ctx.body = getDataResult(result);
