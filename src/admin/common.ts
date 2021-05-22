@@ -7,7 +7,10 @@ export async function setConfig(ctx: Context) {
     if (!ctx.query.v) ctx.throw(400, 'v required');
     const configs = db.collection(COLLECTIONS.CONFIG);
     await configs.updateOne({ _id: ctx.query.k },
-        { $set: { _id: ctx.query.k, value: ctx.query.v, date: new Date() } },
+        {
+            $set: { _id: ctx.query.k, value: ctx.query.v, date: new Date() },
+            $unset: { _class: "" }
+        },
         { upsert: true });
     ctx.body = getDataResult(ctx.query.k);
 }
