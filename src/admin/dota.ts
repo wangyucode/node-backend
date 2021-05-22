@@ -51,13 +51,14 @@ export function putLeagues(ctx: Context) {
 
 
 export async function postHero(ctx: Context) {
-    if (!ctx.request.body.name || !ctx.request.body._id) ctx.throw(400, 'Invalid name');
+    if (!ctx.request.body.name) ctx.throw(400, 'Invalid name');
     const heros = db.collection(COLLECTIONS.DOTA_HERO_DETAIL);
     const hero = ctx.request.body;
-    const result = await heros.updateOne({ $or: [{ _id: hero.name }, { _id: hero._id }] }, {
-        $set: hero
+    const result = await heros.updateOne({ _id: hero.name }, {
+        $set: hero,
+        $unset: { _class: "" }
     }, {
         upsert: true
     });
-    ctx.body = getDataResult(result);
+    ctx.body = getDataResult(result.result);
 }
