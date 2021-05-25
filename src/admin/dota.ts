@@ -62,3 +62,16 @@ export async function postHero(ctx: Context) {
     });
     ctx.body = getDataResult(result.result);
 }
+
+export async function postItem(ctx: Context) {
+    if (!ctx.request.body.key) ctx.throw(400, 'Invalid key');
+    const items = db.collection(COLLECTIONS.DOTA_ITEM);
+    const item = ctx.request.body;
+    const result = await items.updateOne({ _id: item.key }, {
+        $set: item,
+        $unset: { _class: "" }
+    }, {
+        upsert: true
+    });
+    ctx.body = getDataResult(result.result);
+}

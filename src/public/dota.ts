@@ -90,25 +90,25 @@ export async function getHeroDetail(ctx: Context) {
     const result = await itemsDb.findOne({ _id: decodeURIComponent(ctx.params.id) });
     for (const a of result.abilities) {
         if (a.shard) {
-            a.attributes['魔晶升级：'] = a.shard;
+            a.attributes['魔晶升级'] = a.shard;
         }
         if(a.scepter) {
-            a.attributes['神杖升级：'] = a.scepter;
+            a.attributes['神杖升级'] = a.scepter;
         }
         if(a.behavior) {
-            a.attributes['技能目标：'] = a.behavior;
+            a.attributes['技能目标'] = a.behavior;
         }
         if(a.dispellable) {
-            a.attributes['能否驱散：'] = a.dispellable;
+            a.attributes['能否驱散'] = a.dispellable;
         }
         if(a.immunity) {
-            a.attributes['无视魔免：'] = a.immunity;
+            a.attributes['无视魔免'] = a.immunity;
         }
         if(a.effect) {
-            a.attributes['作用于：'] = a.effect;
+            a.attributes['作用于'] = a.effect;
         }
         if(a.damage) {
-            a.attributes['伤害类型：'] = a.damage;
+            a.attributes['伤害类型'] = a.damage;
         }
     }
     ctx.body = getDataResult(result);
