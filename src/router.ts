@@ -41,6 +41,7 @@ export default function getRouter(): Router {
     router.put('/admin/dota/leagues', admin_dota.putLeagues);
 
     router.post('/admin/dota/hero', admin_dota.postHero);
+    router.post('/admin/dota/item', admin_dota.postItem);
 
     return router;
 }
