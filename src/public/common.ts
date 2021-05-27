@@ -11,10 +11,23 @@ export async function getConfig(ctx: Context) {
     ctx.body = getDataResult(result);
 }
 
+export async function getComments(ctx: Context) {
+    if (!ctx.query.k) ctx.throw(400, 'k required');
+    if (!ctx.query.a) ctx.throw(400, 'a required');
+    if (!ctx.query.t) ctx.throw(400, 't required');
+
+    const app = await getCommentApp(ctx.query.a as string, ctx.query.k as string);
+    if (!app) ctx.throw(401, '没有权限');
+
+    const comments = db.collection(COLLECTIONS.COMMENT);
+    const result = await comments.find({ app: ctx.query.a, topicId: ctx.query.t }).toArray();
+    ctx.body = getDataResult(result);
+}
+
 export async function postComment(ctx: Context) {
     const comment = ctx.request.body;
     logger.info('postComment-->', comment);
-   
+
     if (!comment) ctx.throw(400, '格式错误');
     // 评论类型，0.文字评论，1.点赞，2.图片评论
     if ((typeof comment.type) !== "number" || comment.type < 0 || comment.type > 2) ctx.throw(400, '评论类型不合法');
@@ -28,8 +41,7 @@ export async function postComment(ctx: Context) {
         ctx.throw(400, '接口已屏蔽您的请求');
     }
 
-    const commentApps = db.collection(COLLECTIONS.COMMENT_APP);
-    const app = await commentApps.findOne({ name: comment.app, accessKey: comment.key });
+    const app = await getCommentApp(comment.app, comment.key);
     if (!app) ctx.throw(401, '没有权限');
 
     const data = {
@@ -56,6 +68,11 @@ export async function postComment(ctx: Context) {
     }
     email(MY_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
     ctx.body = getDataResult(result.insertedId);
+}
+
+async function getCommentApp(app: string, key: string) {
+    const commentApps = db.collection(COLLECTIONS.COMMENT_APP);
+    return await commentApps.findOne({ name: app, accessKey: key });
 }
 
 

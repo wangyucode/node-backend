@@ -12,6 +12,7 @@ export default function getRouter(): Router {
 
     router.get('/config', common.getConfig);
     router.post('/comments', common.postComment);
+    router.get('/comments', common.getComments);
 
     router.get('/dota/news', dota.getNews);
     router.get('/dota/news/:id', dota.getNewsDetail);
@@ -35,8 +36,6 @@ export default function getRouter(): Router {
     router.put('/admin/dota/news', admin_dota.setNews);
     router.put('/admin/dota/news/:id', admin_dota.setNewsDetail);
     router.delete('/admin/dota/news', admin_dota.clearNews);
-    // TODO delete
-    router.put('/admin/dota/top', admin_dota.setTopNews);
     router.put('/admin/dota/schedules', admin_dota.putSchedules);
     router.put('/admin/dota/leagues', admin_dota.putLeagues);
 
