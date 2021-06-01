@@ -33,9 +33,7 @@ export default function getRouter(): Router {
     router.put('/admin/config', admin_common.setConfig);
     router.delete('/admin/config', admin_common.deleteConfig);
 
-    router.put('/admin/dota/news', admin_dota.setNews);
-    router.put('/admin/dota/news/:id', admin_dota.setNewsDetail);
-    router.delete('/admin/dota/news', admin_dota.clearNews);
+    router.post('/admin/dota/news', admin_dota.postNews);
     router.put('/admin/dota/schedules', admin_dota.putSchedules);
     router.put('/admin/dota/leagues', admin_dota.putLeagues);
 

@@ -12,8 +12,17 @@ export enum COLLECTIONS {
     COMMENT_APP = 'mongoCommentApp',
     DOTA_ITEM = 'mongoDotaItem',
     DOTA_HERO_DETAIL = 'mongoHeroDetail',
+    DOTA_NEWS = 'dotaNews',
     COMMENT = 'mongoComment',
     CONFIG = 'wyConfig'
+}
+
+export enum CONFIG_KEYS {
+    CONFIG_DOTA_VERSION = 'CONFIG_DOTA_VERSION',
+    CONFIG_DOTA_SCHEDULES = 'CONFIG_DOTA_SCHEDULES',
+    CONFIG_DOTA_LEAGUES = 'CONFIG_DOTA_LEAGUES',
+    CONFIG_DOTA_TEAMS = 'CONFIG_DOTA_TEAMS',
+    CONFIG_DOTA_LEADERBOARD = 'CONFIG_DOTA_LEADERBOARD',
 }
 
 export async function connectToDb() {
