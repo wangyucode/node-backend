@@ -1,4 +1,5 @@
 import * as Koa from 'koa';
+import * as cors from '@koa/cors';
 import * as Router from '@koa/router';
 
 import {logger} from "./log";
@@ -10,6 +11,7 @@ import setupCron from './cron';
 
 // koa server
 const app = new Koa();
+app.use(cors());
 
 app.use(async (ctx, next) => {
     try {
@@ -27,7 +29,6 @@ const router : Router = getRouter();
 
 app.use(router.routes())
     .use(router.allowedMethods());
-
 
 app.listen(8082);
 
