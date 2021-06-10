@@ -13,7 +13,7 @@ export enum COLLECTIONS {
     DOTA_ITEM = 'mongoDotaItem',
     DOTA_HERO_DETAIL = 'mongoHeroDetail',
     DOTA_NEWS = 'dotaNews',
-    COMMENT = 'mongoComment',
+    COMMENT = 'comments',
     CONFIG = 'wyConfig'
 }
 

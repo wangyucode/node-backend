@@ -11,3 +11,7 @@ export function getDataResult(payload: any): CommonResult {
 export function getErrorResult(message?: string): CommonResult {
     return { message, success: false };
 }
+
+export function isProd(): boolean {
+    return process.env.ENV === 'prod';
+}
