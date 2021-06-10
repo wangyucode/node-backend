@@ -38,8 +38,8 @@ export async function getNews(ctx: Context) {
         }
     });
     const total = await result.count();
-    const news = await result.skip(page * size).limit(size).toArray();
-    ctx.body = getDataResult({ page, size, news, total });
+    const items = await result.skip(page * size).limit(size).toArray();
+    ctx.body = getDataResult({ page, size, items, total });
 }
 
 export async function getNewsDetail(ctx: Context) {
