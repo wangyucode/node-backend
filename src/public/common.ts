@@ -1,8 +1,9 @@
+import { ObjectId } from "bson";
 import { Context } from "koa";
 import { logger } from "../log";
 import { email, MY_EMAIL } from "../mail";
 import { COLLECTIONS, db } from "../mongo";
-import { getDataResult } from "../utils";
+import { getDataResult, isProd } from "../utils";
 
 export async function getConfig(ctx: Context) {
     if (!ctx.query.k) ctx.throw(400, 'k required');
@@ -20,7 +21,27 @@ export async function getComments(ctx: Context) {
     if (!app) ctx.throw(401, '没有权限');
 
     const comments = db.collection(COLLECTIONS.COMMENT);
-    const result = await comments.find({ app: ctx.query.a, topicId: ctx.query.t }, { projection: { _class: 0 } }).toArray();
+    const result = await comments.find({ app: ctx.query.a, topic: ctx.query.t },
+        {
+            projection: {
+                createTime: { $dateToString: { date: '$createTime', format: '%Y/%m/%d %H:%M:%S', timezone: '+08' } },
+                content: 1,
+                user: 1,
+                like: 1,
+                to: 1
+            }
+        }
+    ).toArray();
+    // hide user email
+    result.map(it => {
+        if (/^\S+@\w+(\.[\w]+)+$/.test(it.user)) {
+            let user = it.user.charAt(0);
+            const atIndex = it.user.lastIndexOf('@');
+            user += new Array(atIndex).fill('*').join('');
+            user += it.user.substring(atIndex);
+            it.user = user;
+        }
+    });
     ctx.body = getDataResult(result);
 }
 
@@ -38,7 +59,7 @@ export async function postComment(ctx: Context) {
     // 垃圾信息过滤 TODO
     if (/^[0-9_a-z_A-Z]{8}$/.test(comment.content)) {
         logger.warn('评论已屏蔽');
-        ctx.throw(400, '接口已屏蔽您的请求');
+        ctx.throw(400, '请勿发表无意义的内容');
     }
 
     const app = await getCommentApp(comment.app, comment.key);
@@ -50,27 +71,25 @@ export async function postComment(ctx: Context) {
         case 0:
             const data = {
                 app: comment.app,
-                topicId: comment.topic,
+                topic: comment.topic,
                 content: comment.content,
                 type: comment.type,
-                fromUserId: comment.fromUserId,
-                fromUserName: comment.fromUserName,
-                fromUserIcon: comment.fromUserIcon,
-                toId: comment.toId,
+                user: comment.fromUserName, //TODO
+                to: comment.to,
                 deleted: false,
                 createTime: new Date(),
-                likeCount: 0
+                like: 0
             };
             result = await commentCollection.insertOne(data);
-            email(MY_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
+            if (isProd()) email(MY_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
             break;
         case 1:
-            result = await commentCollection.updateOne({ _id: comment.toId }, { $inc: { likeCount: 1 } });
+            result = await commentCollection.updateOne({ _id: new ObjectId(comment.toId) }, { $inc: { like: 1 } });
             break;
         default:
             ctx.throw(501, '暂不支持');
     }
-    ctx.body = getDataResult(result.result);
+    ctx.body = getDataResult(result.insertedId || result.modifiedCount);
 }
 
 async function getCommentApp(app: string, key: string) {
