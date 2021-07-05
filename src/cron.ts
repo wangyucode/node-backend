@@ -1,7 +1,7 @@
 import { CronJob } from 'cron';
 import { logger } from './log';
 import * as fetch from 'node-fetch';
-import { CONFIG_KEYS } from './mongo';
+import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
 import { setConfig } from './admin/common';
 
 
@@ -11,6 +11,7 @@ export default function setupCron() {
         logger.info("corn job started!");
         getLeadboad();
         getTeams();
+        removeOldNews();
     });
     logger.debug('setupCron->', weeklyJob.nextDates(3));
     weeklyJob.start();
@@ -57,4 +58,26 @@ async function getTeams() {
     }
 
     await setConfig(ctx);
+}
+
+
+async function removeOldNews() {
+    const nc = db.collection(COLLECTIONS.DOTA_NEWS);
+    const result = nc.find(null, {
+        sort: {
+            date: 1,
+        }
+    });
+
+    while (await result.hasNext()) {
+        const news = await result.next();
+        const date = new Date(news.date);
+        // if news date > 150 days
+        if (new Date().getTime() - date.getTime() > 24 * 3600 * 1000 * 180) {
+            await nc.deleteOne({ _id: news._id });
+            console.log('remove news:', date);
+        } else {
+            break;
+        }
+    }
 }
