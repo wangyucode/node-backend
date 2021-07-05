@@ -35,6 +35,9 @@ export async function getNews(ctx: Context) {
             title: 1,
             content: 1,
             date: 1
+        },
+        sort: {
+            date: -1,
         }
     });
     const total = await result.count();
