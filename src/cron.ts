@@ -1,21 +1,19 @@
 import { CronJob } from 'cron';
 import { logger } from './log';
 import * as fetch from 'node-fetch';
+import { CONFIG_KEYS } from './mongo';
+import { setConfig } from './admin/common';
 
-export let leaderboard = [];
-export let teams = [];
 
 export default function setupCron() {
+    // 10:00:00 every Tuesday
     const weeklyJob = new CronJob('0 0 10 * * 2', function () {
         logger.info("corn job started!");
         getLeadboad();
         getTeams();
     });
-    logger.debug(weeklyJob.nextDates(3));
+    logger.debug('setupCron->', weeklyJob.nextDates(3));
     weeklyJob.start();
-
-    getLeadboad();
-    getTeams();
 }
 
 async function getLeadboad() {
@@ -23,8 +21,17 @@ async function getLeadboad() {
     logger.info(url);
     const res = await fetch(url);
     const json = await res.json();
-    logger.info(json);
-    leaderboard = json.leaderboard;
+    logger.info('getLeadboad->', json.leaderboard.length);
+    if (json.leaderboard.length) {
+        const ctx: any = {
+            query: {
+                k: CONFIG_KEYS.CONFIG_DOTA_LEADERBOARD,
+                v: json.leaderboard
+            }
+        }
+
+        await setConfig(ctx);
+    }
 }
 
 async function getTeams() {
@@ -32,13 +39,22 @@ async function getTeams() {
     logger.info(url);
     const res = await fetch(url);
     const json = await res.json();
-    
-    teams = json.data.map(it => ({
+
+    const teams = json.data.map(it => ({
         name: it.team.name,
         logo: it.team.logo,
         nation: it.team.nation,
         rank: it.rank,
         point: it.integral
     }));
-    logger.info(teams);
+    logger.info('getTeams->', teams.length);
+
+    const ctx: any = {
+        query: {
+            k: CONFIG_KEYS.CONFIG_DOTA_TEAMS,
+            v: teams
+        }
+    }
+
+    await setConfig(ctx);
 }

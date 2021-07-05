@@ -1,8 +1,9 @@
+import { ObjectId } from "bson";
 import { Context } from "koa";
 import { logger } from "../log";
 import { email, MY_EMAIL } from "../mail";
 import { COLLECTIONS, db } from "../mongo";
-import { getDataResult } from "../utils";
+import { getDataResult, isProd } from "../utils";
 
 export async function getConfig(ctx: Context) {
     if (!ctx.query.k) ctx.throw(400, 'k required');
@@ -11,10 +12,43 @@ export async function getConfig(ctx: Context) {
     ctx.body = getDataResult(result);
 }
 
+export async function getComments(ctx: Context) {
+    if (!ctx.query.k) ctx.throw(400, 'k required');
+    if (!ctx.query.a) ctx.throw(400, 'a required');
+    if (!ctx.query.t) ctx.throw(400, 't required');
+
+    const app = await getCommentApp(ctx.query.a as string, ctx.query.k as string);
+    if (!app) ctx.throw(401, '没有权限');
+
+    const comments = db.collection(COLLECTIONS.COMMENT);
+    const result = await comments.find({ app: ctx.query.a, topic: ctx.query.t },
+        {
+            projection: {
+                createTime: { $dateToString: { date: '$createTime', format: '%Y/%m/%d %H:%M:%S', timezone: '+08' } },
+                content: 1,
+                user: 1,
+                like: 1,
+                to: 1
+            }
+        }
+    ).toArray();
+    // hide user email
+    result.map(it => {
+        if (/^\S+@\w+(\.[\w]+)+$/.test(it.user)) {
+            let user = it.user.charAt(0);
+            const atIndex = it.user.lastIndexOf('@');
+            user += new Array(atIndex).fill('*').join('');
+            user += it.user.substring(atIndex);
+            it.user = user;
+        }
+    });
+    ctx.body = getDataResult(result);
+}
+
 export async function postComment(ctx: Context) {
     const comment = ctx.request.body;
     logger.info('postComment-->', comment);
-   
+
     if (!comment) ctx.throw(400, '格式错误');
     // 评论类型，0.文字评论，1.点赞，2.图片评论
     if ((typeof comment.type) !== "number" || comment.type < 0 || comment.type > 2) ctx.throw(400, '评论类型不合法');
@@ -25,38 +59,40 @@ export async function postComment(ctx: Context) {
     // 垃圾信息过滤 TODO
     if (/^[0-9_a-z_A-Z]{8}$/.test(comment.content)) {
         logger.warn('评论已屏蔽');
-        ctx.throw(400, '接口已屏蔽您的请求');
+        ctx.throw(400, '请勿发表无意义的内容');
     }
 
-    const commentApps = db.collection(COLLECTIONS.COMMENT_APP);
-    const app = await commentApps.findOne({ name: comment.app, accessKey: comment.key });
+    const app = await getCommentApp(comment.app, comment.key);
     if (!app) ctx.throw(401, '没有权限');
-
-    const data = {
-        app: comment.app,
-        topicId: comment.topic,
-        content: comment.content,
-        type: comment.type,
-        fromUserId: comment.fromUserId,
-        fromUserName: comment.fromUserName,
-        toId: comment.toId,
-        deleted: false,
-        createTime: new Date(),
-        likeCount: 0
-    };
 
     const commentCollection = db.collection(COLLECTIONS.COMMENT);
     let result = null;
     switch (comment.type) {
         case 0:
+            const data = {
+                app: comment.app,
+                topic: comment.topic,
+                content: comment.content,
+                type: comment.type,
+                user: comment.fromUserName, //TODO
+                to: comment.to,
+                deleted: false,
+                createTime: new Date(),
+                like: 0
+            };
             result = await commentCollection.insertOne(data);
+            if (isProd()) email(MY_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
+            break;
+        case 1:
+            result = await commentCollection.updateOne({ _id: new ObjectId(comment.toId) }, { $inc: { like: 1 } });
             break;
         default:
             ctx.throw(501, '暂不支持');
     }
-    email(MY_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
-    ctx.body = getDataResult(result.insertedId);
+    ctx.body = getDataResult(result.insertedId || result.modifiedCount);
 }
 
-
-
+async function getCommentApp(app: string, key: string) {
+    const commentApps = db.collection(COLLECTIONS.COMMENT_APP);
+    return await commentApps.findOne({ name: app, accessKey: key });
+}

@@ -1,8 +1,9 @@
 import * as Koa from 'koa';
+import * as cors from '@koa/cors';
 import * as Router from '@koa/router';
 
 import {logger} from "./log";
-import {getErrorResult} from "./utils";
+import {getErrorResult, isProd} from "./utils";
 import bodyParser = require("koa-bodyparser");
 import { connectToDb } from './mongo';
 import getRouter from './router';
@@ -10,6 +11,7 @@ import setupCron from './cron';
 
 // koa server
 const app = new Koa();
+app.use(cors());
 
 app.use(async (ctx, next) => {
     try {
@@ -28,7 +30,6 @@ const router : Router = getRouter();
 app.use(router.routes())
     .use(router.allowedMethods());
 
-
 app.listen(8082);
 
 connectToDb();
@@ -36,4 +37,4 @@ connectToDb();
 logger.info('server listening on 8082')
 
 //cron jobs
-if(process.env.ENV === 'prod') setupCron();
+if(isProd()) setupCron();

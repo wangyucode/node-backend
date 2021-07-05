@@ -1,57 +1,59 @@
 import { Context } from "koa";
-import { DotaNews, DotaNewsNode } from "../types";
+import { logger } from "../log";
+import { COLLECTIONS, CONFIG_KEYS, db } from "../mongo";
 import { getDataResult } from "../utils";
-
-export let leagues = [];
-export let schedules = [];
-export let topNews : DotaNews = {
-    href:'dev',
-    img: 'https://wycode.cn/dota2static/dota2/b2dea7d0-e056-424f-a3e5-931e73a21e08.jpg',
-    title: '更新通知',
-    content: 'DOTA2小助手1.7已发布！添加中立物品支持，更新数据库至7.29c',
-    date: '2021-05-14'
-};
-export let news = [topNews];
-export const newsDetail: Map<string, DotaNewsNode[]> = new Map();
+import { setConfig } from "./common";
 
 
-export function putSchedules(ctx: Context) {
+export async function putSchedules(ctx: Context) {
     if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
-    schedules = ctx.request.body;
-    ctx.body = getDataResult(schedules.length);
+    ctx.query.k = CONFIG_KEYS.CONFIG_DOTA_SCHEDULES;
+    ctx.query.v = ctx.request.body;
+    await setConfig(ctx);
 }
 
-export function setNews(ctx: Context) {
+export async function postNews(ctx: Context) {
+    if (!ctx.request.body._id) ctx.throw(400, '_id required');
+    const nc = db.collection(COLLECTIONS.DOTA_NEWS);
+    const news = ctx.request.body;
+    let result = { insertedCount: 0 }
+    try {
+        result = await nc.insertOne(news)
+    } catch (e) {
+        logger.info(`${news._id} exist`)
+    };
+    ctx.body = getDataResult(result.insertedCount);
+}
+
+export async function putLeagues(ctx: Context) {
     if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
-    news = [topNews].concat(ctx.request.body);
-    ctx.body = getDataResult(news.length);
+    ctx.query.k = CONFIG_KEYS.CONFIG_DOTA_LEAGUES;
+    ctx.query.v = ctx.request.body;
+    await setConfig(ctx);
 }
 
-export function setTopNews(ctx: Context) {
-    topNews = ctx.request.body;
-    ctx.body = getDataResult(topNews);
+export async function postHero(ctx: Context) {
+    if (!ctx.request.body.name) ctx.throw(400, 'Invalid name');
+    const heros = db.collection(COLLECTIONS.DOTA_HERO_DETAIL);
+    const hero = ctx.request.body;
+    const result = await heros.updateOne({ _id: hero.name }, {
+        $set: hero,
+        $unset: { _class: "" }
+    }, {
+        upsert: true
+    });
+    ctx.body = getDataResult(result.result);
 }
 
-export function setNewsDetail(ctx: Context) {
-    newsDetail.set(ctx.params.id, ctx.request.body);
-    ctx.body = getDataResult({ id: ctx.params.id, size: ctx.request.body.length });
-}
-
-export function clearNews(ctx: Context) {
-    newsDetail.clear();
-    ctx.body = getDataResult(0);
-}
-
-export function putLeagues(ctx: Context) {
-    if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
-    leagues = ctx.request.body;
-    ctx.body = getDataResult(leagues.length);
-}
-
-
-export async function postHero(ctx: Context){
-    const configs = db.collection(COLLECTIONS.CONFIG);
-    await configs.updateOne({ _id: ctx.query.k },
-        { $set: { _id: ctx.query.k, value: ctx.query.v, date: new Date() } },
-        { upsert: true });
+export async function postItem(ctx: Context) {
+    if (!ctx.request.body.key) ctx.throw(400, 'Invalid key');
+    const items = db.collection(COLLECTIONS.DOTA_ITEM);
+    const item = ctx.request.body;
+    const result = await items.updateOne({ _id: item.key }, {
+        $set: item,
+        $unset: { _class: "" }
+    }, {
+        upsert: true
+    });
+    ctx.body = getDataResult(result.result);
 }
