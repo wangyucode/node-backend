@@ -46,6 +46,7 @@ jobs:
         uses: docker/build-push-action@v1
         with:
           username: wangyucode
+          platforms: linux/amd64,linux/arm64
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: wangyucode/node-backend
           tag_with_ref: true
@@ -53,6 +54,7 @@ jobs:
         uses: docker/build-push-action@v1
         with:
           username: www_wayne_001@163.com
+          platforms: linux/amd64,linux/arm64
           password: ${{ secrets.ALIYUN_PASSWORD }}
           registry: registry.cn-zhangjiakou.aliyuncs.com
           repository: wangyucode/node-backend
