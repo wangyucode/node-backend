@@ -18,3 +18,4 @@ RUN npm ci
 COPY --from=build /code/dist/ .
 COPY .env .
 CMD [ "node", "app.js" ]
+EXPOSE 8082
