@@ -71,4 +71,4 @@ jobs:
 
       - name: Call watchtower to check image
         run: |
-          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
+          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" 47.92.249.97:8085/v1/update
