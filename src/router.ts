@@ -6,6 +6,7 @@ import * as admin_common from './admin/common';
 import * as auth from './auth';
 import * as admin_dota from './admin/dota';
 import * as dota from './public/dota';
+import * as clipboard from './public/clipboard';
 
 export default function getRouter(): Router {
     const router = new Router({ prefix: '/node' });
@@ -24,6 +25,13 @@ export default function getRouter(): Router {
     router.get('/dota/heroes', dota.getHeros);
     router.get('/dota/heroes/:id', dota.getHeroDetail);
     router.get('/dota/leaderboard', dota.getLeaderboard);
+
+    router.get('/clipboard/wx/session', clipboard.getWxSession);
+    router.get('/clipboard/notification', clipboard.getNotification);
+    router.get('/clipboard/:id', clipboard.getById);
+    router.get('/clipboard/openid/:openid', clipboard.getByOpenid);
+    router.post('/clipboard', clipboard.saveById);
+    
 
     router.get('/login', auth.login);
 
