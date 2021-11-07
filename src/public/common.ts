@@ -3,13 +3,13 @@ import { Context } from "koa";
 import { logger } from "../log";
 import { email, MY_EMAIL } from "../mail";
 import { COLLECTIONS, db } from "../mongo";
-import { getDataResult, isProd } from "../utils";
+import { getDataResult, getErrorResult, isProd } from "../utils";
 
 export async function getConfig(ctx: Context) {
     if (!ctx.query.k) ctx.throw(400, 'k required');
     const configs = db.collection(COLLECTIONS.CONFIG);
     const result = await configs.findOne({ _id: ctx.query.k });
-    ctx.body = getDataResult(result);
+    ctx.body = result ? getDataResult(result) : getErrorResult('not exsit');
 }
 
 export async function getComments(ctx: Context) {

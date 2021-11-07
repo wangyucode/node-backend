@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Build NodeJS Backend
 
 # Controls when the action will run. 
 on:
@@ -38,10 +38,6 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-      # - run: npm install
-      # - run: npm test
-      #   env:
-      #     ENV: ci
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -73,6 +69,6 @@ jobs:
             registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:latest
             registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:1.0.0
 
-      # - name: Call watchtower to check image
-      #   run: |
-      #     curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
+      - name: Call watchtower to check image
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
