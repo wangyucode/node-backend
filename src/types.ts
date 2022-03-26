@@ -19,7 +19,13 @@ export interface DotaNews {
     date: string;
 }
 
-export interface DotaNewsNode{
+export class ExternalError {
+    constructor(public status: number, public message: string | object) {
+        if (typeof message === 'object') this.message = JSON.stringify(message);
+    }
+}
+
+export interface DotaNewsNode {
     type: 'img' | 'br' | 'p' | 'b'
     content: string;
 }

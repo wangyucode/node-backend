@@ -1,6 +1,6 @@
-import * as Koa from 'koa';
-import * as cors from '@koa/cors';
-import * as Router from '@koa/router';
+import Application from 'koa';
+import cors from '@koa/cors';
+import Router from '@koa/router';
 
 import {logger} from "./log";
 import {getErrorResult} from "./utils";
@@ -10,7 +10,7 @@ import getRouter from './router';
 import setupCron from './cron';
 
 // koa server
-const app = new Koa();
+const app = new Application();
 app.use(cors());
 
 app.use(async (ctx, next) => {
@@ -18,8 +18,8 @@ app.use(async (ctx, next) => {
         await next();
     } catch (err) {
         // will only respond with JSON
-        ctx.status = err.statusCode || err.status || 500;
-        ctx.body = getErrorResult(err.message);
+        ctx.status = err.status || 500;
+        ctx.body = getErrorResult(err.message || JSON.stringify(err));
     }
 });
 
