@@ -1,6 +1,6 @@
 import { CronJob } from 'cron';
 import { logger } from './log';
-import * as fetch from 'node-fetch';
+import axios from 'axios';
 import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
 import { setConfig } from './admin/common';
 
@@ -17,17 +17,16 @@ export default function setupCron() {
     weeklyJob.start();
 }
 
-async function getLeadboad() {
+export async function getLeadboad() {
     const url = Buffer.from('aHR0cDovL3d3dy5kb3RhMi5jb20vd2ViYXBpL0lMZWFkZXJib2FyZC9HZXREaXZpc2lvbkxlYWRlcmJvYXJkL3YwMDAxP2RpdmlzaW9uPWNoaW5hJmxlYWRlcmJvYXJkPTA=', "base64").toString('utf-8');
     logger.info(url);
-    const res = await fetch(url);
-    const json = await res.json();
-    logger.info('getLeadboad->', json.leaderboard.length);
-    if (json.leaderboard.length) {
+    const res = await axios.get(url);
+    logger.info('getLeadboad->', res.data.leaderboard.length);
+    if (res.data.leaderboard.length) {
         const ctx: any = {
             query: {
                 k: CONFIG_KEYS.CONFIG_DOTA_LEADERBOARD,
-                v: json.leaderboard
+                v: res.data.leaderboard
             }
         }
 
@@ -35,13 +34,11 @@ async function getLeadboad() {
     }
 }
 
-async function getTeams() {
+export async function getTeams() {
     const url = Buffer.from('aHR0cHM6Ly9kYXRhc2VydmljZS1zZWMudnBnYW1lLmNvbS9kb3RhMi9wcm8vd2Vic2VydmljZS90aTEwL3RlYW0vbGlzdD9nYW1lX3R5cGU9ZG90YSZsaW1pdD0zMA==', "base64").toString('utf-8');
     logger.info(url);
-    const res = await fetch(url);
-    const json = await res.json();
-
-    const teams = json.data.map(it => ({
+    const res = await axios.get(url);
+    const teams = res.data.data.map(it => ({
         name: it.team.name,
         logo: it.team.logo,
         nation: it.team.nation,

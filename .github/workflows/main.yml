@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.5
         with: 
-          node-version: '14'
+          node-version: '16'
       - name: Cache node modules
         uses: actions/cache@v2
         env:
@@ -65,10 +65,10 @@ jobs:
           push: true
           tags: |
             wangyucode/node-backend:latest
-            wangyucode/node-backend:1.0.0
+            wangyucode/node-backend:2.0.0
             registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:latest
-            registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:1.0.0
+            registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:2.0.0
 
       - name: Call watchtower to check image
         run: |
-          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" 47.92.249.97:8085/v1/update
+          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" wycode.cn:8085/v1/update
