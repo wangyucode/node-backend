@@ -50,12 +50,12 @@ jobs:
           username: wangyucode
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Login to Aliyun Registry
-        uses: docker/login-action@v1 
-        with:
-          registry: registry.cn-zhangjiakou.aliyuncs.com
-          username: www_wayne_001@163.com
-          password: ${{ secrets.ALIYUN_PASSWORD }}
+      # - name: Login to Aliyun Registry
+      #   uses: docker/login-action@v1 
+      #   with:
+      #     registry: registry.cn-zhangjiakou.aliyuncs.com
+      #     username: www_wayne_001@163.com
+      #     password: ${{ secrets.ALIYUN_PASSWORD }}
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -66,8 +66,8 @@ jobs:
           tags: |
             wangyucode/node-backend:latest
             wangyucode/node-backend:2.0.0
-            registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:latest
-            registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:2.0.0
+#            registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:latest
+#            registry.cn-zhangjiakou.aliyuncs.com/wangyucode/node-backend:2.0.0
 
       - name: Call watchtower to check image
         run: |
