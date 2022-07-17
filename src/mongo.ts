@@ -1,10 +1,11 @@
 import { Db, MongoClient } from "mongodb"
 import { logger } from "./log";
+import { email, MY_EMAIL } from "./mail";
 
 
 const uri = process.env.MONGODB_URI;
 
-const client = new MongoClient(uri, { useUnifiedTopology: true });
+const client = new MongoClient(uri, { useUnifiedTopology: true, serverSelectionTimeoutMS: 5 * 60 * 1000 });
 
 export let db: Db;
 
@@ -16,6 +17,7 @@ export enum COLLECTIONS {
     COMMENT = 'comments',
     CONFIG = 'wyConfig',
     CLIPBOARD = 'clipboard',
+    ANALYSIS = 'analysis'
 }
 
 export enum CONFIG_KEYS {
@@ -37,5 +39,6 @@ export async function connectToDb() {
         logger.info("Connected successfully to mongodb");
     } catch (e) {
         logger.error("mongo connect error", e);
+        await email(MY_EMAIL, "[node-backend] can not connect to mongodb", e.toString())
     }
 }
