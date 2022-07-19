@@ -13,9 +13,13 @@ interface UrlAccessCount {
     _id: string;
     url: string;
     daily: number;
+    pre_daily: number;
     weekly: number;
+    pre_weekly: number;
     monthly: number;
+    pre_monthly: number;
     yearly: number;
+    pre_yearly: number;
     total: number;
 }
 
@@ -85,16 +89,18 @@ async function clearCount() {
 
     const collection = db.collection(COLLECTIONS.ANALYSIS);
 
-    collection.updateMany({}, { daily: 0 });
+
+    await collection.updateMany({}, { $set: { pre_daily: '$daily' } });
+    await collection.updateMany({}, { $set:{daily: 0} });
 
     if (now.getDay() === 0) {
-        collection.updateMany({}, { weekly: 0 });
+        await collection.updateMany({}, { weekly: 0, pre_weekly: '$weekly' });
     }
 
     if (now.getDate() === 1) {
-        collection.updateMany({}, { monthly: 0 });
+        await collection.updateMany({}, { monthly: 0, pre_monthly: '$monthly' });
         if (now.getMonth() === 0) {
-            collection.updateMany({}, { yearly: 0 });
+            await collection.updateMany({}, { yearly: 0, pre_yearly: '$yearly' });
         }
     }
 
@@ -130,9 +136,13 @@ async function saveOne(_id: string, url: string, collection: Collection) {
             daily: 1,
             monthly: 1,
             weekly: 1,
-            yearly: 1
+            yearly: 1,
+            pre_daily: 0,
+            pre_monthly: 0,
+            pre_weekly: 0,
+            pre_yearly: 0
         }
     }
 
-    await collection.updateOne()
+    await collection.updateOne({ _id }, { $set: accessCount }, { upsert: true });
 }
