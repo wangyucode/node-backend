@@ -1,9 +1,6 @@
-import { info } from 'console';
 import { parse } from 'date-fns';
-import { once } from 'events';
 import { createReadStream } from 'fs';
 import { writeFile } from 'fs/promises';
-import { Collection } from 'mongodb';
 import { createInterface } from 'readline';
 
 import { logger } from '../log';
@@ -34,18 +31,16 @@ interface AccessRecord {
 }
 
 export async function processNginxLog(): Promise<void> {
-
-    clearCount();
+    await clearCount();
 
     let accessCount = 0;
-    const readStream = createReadStream('/app/nginx/access.log');
+    const readStream = createReadStream(process.env.NGINX_LOG_PATH);
     const rl = createInterface({
         input: readStream,
         crlfDelay: Infinity
     });
 
-
-    rl.on('line', (line) => {
+    for await (const line of rl) {
         accessCount++;
         const params = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - .+ \[(.*)\] "(.*)" (\d{3}) \d+ ".+" "(.+)"$/);
 
@@ -66,19 +61,16 @@ export async function processNginxLog(): Promise<void> {
         if (requestParams) {
             method = requestParams[1];
             url = requestParams[2];
-        } else {
-            logger.warn(`Invalid request: ${request}`);
         }
 
         const record: AccessRecord = { ip, time, method, url, status, request, agent };
 
-        saveToDb(record);
+        await saveToDb(record);
+    }
 
-    });
+    rl.close();
 
-    await once(rl, 'close');
-
-    // await writeFile('/app/nginx/access.log', '');
+    await writeFile(process.env.NGINX_LOG_PATH, '');
 
     logger.info(`${accessCount} access log processed successfully`);
 }
@@ -87,40 +79,47 @@ export async function processNginxLog(): Promise<void> {
 async function clearCount() {
     const now = new Date();
 
-    const collection = db.collection(COLLECTIONS.ANALYSIS);
+    const collection = db.collection(COLLECTIONS.ACCESS_COUNT);
 
-
-    await collection.updateMany({}, { $set: { pre_daily: '$daily' } });
-    await collection.updateMany({}, { $set:{daily: 0} });
+    await collection.updateMany({}, [{ $set: { pre_daily: "$daily", daily: 0 } }]);
 
     if (now.getDay() === 0) {
-        await collection.updateMany({}, { weekly: 0, pre_weekly: '$weekly' });
+        await collection.updateMany({}, [{ $set: { weekly: 0, pre_weekly: '$weekly' } }]);
     }
 
     if (now.getDate() === 1) {
-        await collection.updateMany({}, { monthly: 0, pre_monthly: '$monthly' });
+        await collection.updateMany({}, [{ $set: { monthly: 0, pre_monthly: '$monthly' } }]);
         if (now.getMonth() === 0) {
-            await collection.updateMany({}, { yearly: 0, pre_yearly: '$yearly' });
+            await collection.updateMany({}, [{ $set: { yearly: 0, pre_yearly: '$yearly' } }]);
         }
     }
 
 }
 
 async function saveToDb(record: AccessRecord): Promise<void> {
+    // all
+    await saveCount('all', '*');
 
-    const collection = db.collection(COLLECTIONS.ANALYSIS);
+    // invaild request
+    if (!record.url || record.status >= 400) {
+        await saveError(record);
+        return;
+    }
 
-    // logger.info(record);
-
-
-    if (record.url && /^\/\d{4}-\d{2}-\d{2}-.+\.html$/.test(record.url)) {
-
-        await saveOne(record.url.substring(1), record.url, collection);
-
+    // blog
+    if (/^\/\d{4}-\d{2}-\d{2}-.+\.html$/.test(record.url)) {
+        await saveCount(record.url.substring(1), record.url);
+    } else if (/^\/node\/dota.*/.test(record.url)) { // dota
+        await saveCount('dota', '/node/dota');
+    } else if (/^\/node\/comments.*/.test(record.url)) { // comments
+        await saveCount('comments', '/node/comments');
+    } else if (/^\/node\/clipboard.*/.test(record.url)) { // clipboard
+        await saveCount('clipboard', '/node/clipboard');
     }
 }
 
-async function saveOne(_id: string, url: string, collection: Collection) {
+async function saveCount(_id: string, url: string) {
+    const collection = db.collection(COLLECTIONS.ACCESS_COUNT);
     let accessCount: UrlAccessCount = await collection.findOne({ _id });
     if (accessCount) {
         accessCount.total += 1;
@@ -144,5 +143,11 @@ async function saveOne(_id: string, url: string, collection: Collection) {
         }
     }
 
-    await collection.updateOne({ _id }, { $set: accessCount }, { upsert: true });
+    await collection.updateOne({ _id }, [{ $set: accessCount }], { upsert: true });
 }
+
+async function saveError(record: AccessRecord) {
+    const collection = db.collection(COLLECTIONS.ACCESS_ERROR);
+    await collection.insertOne(record);
+}
+

@@ -17,7 +17,8 @@ export enum COLLECTIONS {
     COMMENT = 'comments',
     CONFIG = 'wyConfig',
     CLIPBOARD = 'clipboard',
-    ANALYSIS = 'analysis'
+    ACCESS_COUNT = 'accessCount',
+    ACCESS_ERROR = 'accessError',
 }
 
 export enum CONFIG_KEYS {

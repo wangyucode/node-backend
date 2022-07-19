@@ -1,8 +1,10 @@
 import { CronJob } from 'cron';
-import { logger } from './log';
 import axios from 'axios';
-import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
+
 import { setConfig } from './admin/common';
+import { processNginxLog } from './analysis/analysis';
+import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
+import { logger } from './log';
 
 
 export default function setupCron() {
@@ -15,6 +17,13 @@ export default function setupCron() {
     });
     logger.debug('setupCron->', weeklyJob.nextDates(3));
     weeklyJob.start();
+
+    // 00:00:00 every day
+    const dailyJob = new CronJob('0 0 0 * * *', function () {
+        processNginxLog()
+    });
+    logger.debug('setupCron->', dailyJob.nextDates(3));
+    dailyJob.start();
 }
 
 async function getLeaderBoard() {
