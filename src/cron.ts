@@ -1,27 +1,36 @@
 import { CronJob } from 'cron';
-import { logger } from './log';
 import axios from 'axios';
-import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
+
 import { setConfig } from './admin/common';
+import { processNginxLog } from './analysis/analysis';
+import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
+import { logger } from './log';
 
 
 export default function setupCron() {
     // 10:00:00 every Tuesday
     const weeklyJob = new CronJob('0 0 10 * * 2', function () {
         logger.info("corn job started!");
-        getLeadboad();
+        getLeaderBoard();
         getTeams();
         removeOldNews();
     });
     logger.debug('setupCron->', weeklyJob.nextDates(3));
     weeklyJob.start();
+
+    // 00:00:00 every day
+    const dailyJob = new CronJob('0 0 0 * * *', function () {
+        processNginxLog()
+    });
+    logger.debug('setupCron->', dailyJob.nextDates(3));
+    dailyJob.start();
 }
 
-export async function getLeadboad() {
+async function getLeaderBoard() {
     const url = Buffer.from('aHR0cDovL3d3dy5kb3RhMi5jb20vd2ViYXBpL0lMZWFkZXJib2FyZC9HZXREaXZpc2lvbkxlYWRlcmJvYXJkL3YwMDAxP2RpdmlzaW9uPWNoaW5hJmxlYWRlcmJvYXJkPTA=', "base64").toString('utf-8');
     logger.info(url);
     const res = await axios.get(url);
-    logger.info('getLeadboad->', res.data.leaderboard.length);
+    logger.info('getLeaderBoard->', res.data.leaderboard.length);
     if (res.data.leaderboard.length) {
         const ctx: any = {
             query: {
@@ -34,7 +43,7 @@ export async function getLeadboad() {
     }
 }
 
-export async function getTeams() {
+async function getTeams() {
     const url = Buffer.from('aHR0cHM6Ly9kYXRhc2VydmljZS1zZWMudnBnYW1lLmNvbS9kb3RhMi9wcm8vd2Vic2VydmljZS90aTEwL3RlYW0vbGlzdD9nYW1lX3R5cGU9ZG90YSZsaW1pdD0zMA==', "base64").toString('utf-8');
     logger.info(url);
     const res = await axios.get(url);
@@ -72,7 +81,7 @@ async function removeOldNews() {
         // if news date > 150 days
         if (new Date().getTime() - date.getTime() > 24 * 3600 * 1000 * 180) {
             await nc.deleteOne({ _id: news._id });
-            console.log('remove news:', date);
+            logger.info('remove news:', date);
         } else {
             break;
         }

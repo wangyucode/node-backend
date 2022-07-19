@@ -90,8 +90,7 @@ export async function getItemDetail(ctx: Context) {
     const itemsDb = db.collection(COLLECTIONS.DOTA_ITEM);
     const result = await itemsDb.findOne({ _id: ctx.params.id }, {
         projection: {
-            "_id": 0,
-            "_class": 0
+            "_id": 0
         }
     });
     ctx.body = getDataResult(result);
