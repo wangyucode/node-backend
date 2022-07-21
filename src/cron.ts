@@ -10,19 +10,20 @@ import { logger } from './log';
 export default function setupCron() {
     // 10:00:00 every Tuesday
     const weeklyJob = new CronJob('0 0 10 * * 2', function () {
-        logger.info("corn job started!");
+        logger.info("weeklyJob started!");
         getLeaderBoard();
         getTeams();
         removeOldNews();
     });
-    logger.debug('setupCron->', weeklyJob.nextDates(3));
+    logger.info('weeklyJob->', weeklyJob.nextDates(3));
     weeklyJob.start();
 
     // 00:00:00 every day
     const dailyJob = new CronJob('0 0 0 * * *', function () {
+        logger.info("dailyJob started!");
         processNginxLog()
     });
-    logger.debug('setupCron->', dailyJob.nextDates(3));
+    logger.debug('dailyJob->', dailyJob.nextDates(3));
     dailyJob.start();
 }
 
