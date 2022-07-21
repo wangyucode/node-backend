@@ -1,6 +1,7 @@
-import { parse } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { createReadStream } from 'fs';
-import { writeFile } from 'fs/promises';
+import { copyFile, writeFile } from 'fs/promises';
+import { dirname } from 'path';
 import { createInterface } from 'readline';
 
 import { logger } from '../log';
@@ -42,11 +43,11 @@ export async function processNginxLog(): Promise<void> {
 
     for await (const line of rl) {
         accessCount++;
-        const params = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - .+ \[(.*)\] "(.*)" (\d{3}) \d+ ".+" "(.+)"$/);
+        const params = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - .+ \[(.*)\] "(.*)" (\d{3}) \d+ ".+" "(.*)"$/);
 
         if (!params) {
             logger.error('Unexpected line:', line);
-            return;
+            continue;
         }
 
         const ip = params[1];
@@ -69,6 +70,8 @@ export async function processNginxLog(): Promise<void> {
     }
 
     rl.close();
+
+    await copyFile(process.env.NGINX_LOG_PATH, `${dirname(process.env.NGINX_LOG_PATH)}/access.${format(new Date(), 'yyyyMMdd')}.log`);
 
     await writeFile(process.env.NGINX_LOG_PATH, '');
 
