@@ -29,3 +29,5 @@ export interface DotaNewsNode {
     type: 'img' | 'br' | 'p' | 'b'
     content: string;
 }
+
+export const Apps = ['dota', 'clipboard', 'comments'];

@@ -1,4 +1,4 @@
-import { format, parse } from 'date-fns';
+import { format, parse, subDays } from 'date-fns';
 import { createReadStream } from 'fs';
 import { copyFile, writeFile } from 'fs/promises';
 import { dirname } from 'path';
@@ -84,16 +84,22 @@ async function clearCount() {
 
     const collection = db.collection(COLLECTIONS.ACCESS_COUNT);
 
+    const removeDate = subDays(new Date(), 7);
+    const removeResult = await db.collection(COLLECTIONS.ACCESS_ERROR).deleteMany({time: {$lt: removeDate}});
+    logger.info(`Removed ${removeResult.deletedCount} before ${removeDate}`);
     await collection.updateMany({}, [{ $set: { pre_daily: "$daily", daily: 0 } }]);
-
+    logger.info(`cleared daily records`);
     if (now.getDay() === 0) {
         await collection.updateMany({}, [{ $set: { weekly: 0, pre_weekly: '$weekly' } }]);
+        logger.info(`cleared weekly records`);
     }
 
     if (now.getDate() === 1) {
         await collection.updateMany({}, [{ $set: { monthly: 0, pre_monthly: '$monthly' } }]);
+        logger.info(`cleared monthly records`);
         if (now.getMonth() === 0) {
             await collection.updateMany({}, [{ $set: { yearly: 0, pre_yearly: '$yearly' } }]);
+            logger.info(`cleared yearly records`);
         }
     }
 
