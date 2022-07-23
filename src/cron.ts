@@ -2,7 +2,7 @@ import { CronJob } from 'cron';
 import axios from 'axios';
 
 import { setConfig } from './admin/common';
-import { processNginxLog } from './analysis/analysis';
+import { processNginxLog } from './analysis/nginx-log';
 import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
 import { logger } from './log';
 

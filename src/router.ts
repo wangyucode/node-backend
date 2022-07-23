@@ -8,6 +8,7 @@ import * as admin_dota from './admin/dota';
 import * as dota from './public/dota';
 import * as clipboard from './public/clipboard';
 import * as a11 from './public/a11'
+import * as analysis from './public/analysis'
 
 export default function getRouter(): Router {
     const router = new Router({ prefix: '/node' });
@@ -32,6 +33,11 @@ export default function getRouter(): Router {
     router.get('/clipboard/:id', clipboard.getById);
     router.get('/clipboard/openid/:openid', clipboard.getByOpenid);
     router.post('/clipboard', clipboard.saveById);
+
+    router.get('/analysis/blogs', analysis.getBlogs);
+    router.get('/analysis/apps', analysis.getApps);
+    router.get('/analysis/all', analysis.getAll);
+    router.get('/analysis/errors', analysis.getErrors);
 
     router.get('/a11/sign', a11.getWxSign);
 

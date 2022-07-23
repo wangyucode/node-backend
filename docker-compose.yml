@@ -8,9 +8,6 @@ services:
       - 27017:27017
     environment:
       - TZ=Asia/Shanghai
-    volumes:
-      - ./mongo/db/:/data/db/
-      - ./mongo/log/:/var/log/mongodb/
   mongo-express:
     image: mongo-express:1.0.0-alpha.4
     container_name: mongo-express
