@@ -85,7 +85,7 @@ async function clearCount() {
     const collection = db.collection(COLLECTIONS.ACCESS_COUNT);
 
     const removeDate = subDays(new Date(), 7);
-    const removeResult = await db.collection(COLLECTIONS.ACCESS_ERROR).deleteMany({time: {$lt: removeDate}});
+    const removeResult = await db.collection(COLLECTIONS.ACCESS_ERROR).deleteMany({ time: { $lt: removeDate } });
     logger.info(`Removed ${removeResult.deletedCount} before ${removeDate}`);
     await collection.updateMany({}, [{ $set: { pre_daily: "$daily", daily: 0 } }]);
     logger.info(`cleared daily records`);
@@ -116,14 +116,22 @@ async function saveToDb(record: AccessRecord): Promise<void> {
     }
 
     // blog
-    if (/^\/\d{4}-\d{2}-\d{2}-.+\.html$/.test(record.url)) {
-        await saveCount(record.url.substring(1), record.url);
+    if (/^\/[\w-\/]+\.html$/.test(record.url)) {
+        const matches = record.url.match(/^\/(\d{4}-\d{2}-\d{2}-)?([\w-\/]+\.html)$/);
+        if (matches) {
+            await saveCount(matches[2], record.url);
+        } else {
+            logger.warn('unexpected blog URL: ' + record.url);
+        }
+
     } else if (/^\/node\/dota.*/.test(record.url)) { // dota
         await saveCount('dota', '/node/dota');
     } else if (/^\/node\/comments.*/.test(record.url)) { // comments
         await saveCount('comments', '/node/comments');
     } else if (/^\/node\/clipboard.*/.test(record.url)) { // clipboard
         await saveCount('clipboard', '/node/clipboard');
+    } else {
+        logger.warn('unexpected URL: ' + record.url);
     }
 }
 
