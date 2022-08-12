@@ -149,6 +149,10 @@ async function saveToDb(record: AccessRecord): Promise<void> {
         await saveCount('comments', '/node/comments');
     } else if (/^\/node\/clipboard.*/.test(record.url)) { // clipboard
         await saveCount('clipboard', '/node/clipboard');
+    } else if (/^\/(dota2static)|(esportsadmin)\/.*/.test(record.url)) { 
+        // ignore dota image proxy
+    } else if (/\.(js)|(css)$/.test(record.url)) { 
+        // ignore js & css
     } else {
         logger.warn('unexpected URL: ' + record.url);
     }
