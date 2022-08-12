@@ -19,6 +19,7 @@ export enum COLLECTIONS {
     CLIPBOARD = 'clipboard',
     ACCESS_COUNT = 'accessCount',
     ACCESS_ERROR = 'accessError',
+    APP_ACCESS_RECORD = 'appAccessRecord',
 }
 
 export enum CONFIG_KEYS {
