@@ -1,4 +1,4 @@
-import { format, parse, subDays } from 'date-fns';
+import { format, formatISO, parse, subDays } from 'date-fns';
 import { createReadStream } from 'fs';
 import { copyFile, writeFile } from 'fs/promises';
 import { dirname } from 'path';
@@ -31,6 +31,14 @@ interface AccessRecord {
     request: string;
 }
 
+export interface AllAccessRecords {
+    _id: string;
+    records: { date: string, uv: number, pv: number }[]
+}
+
+let pv: number;
+let uv: Set<string>;
+
 export async function processNginxLog(): Promise<void> {
     await clearCount();
 
@@ -41,6 +49,8 @@ export async function processNginxLog(): Promise<void> {
         crlfDelay: Infinity
     });
 
+    pv = 0;
+    uv = new Set();
     for await (const line of rl) {
         accessCount++;
         const params = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - .+ \[(.*)\] "(.*)" (\d{3}) \d+ ".+" "(.*)"$/);
@@ -71,6 +81,8 @@ export async function processNginxLog(): Promise<void> {
 
     rl.close();
 
+    await db.collection(COLLECTIONS.APP_ACCESS_RECORD).updateOne({ _id: 'all' }, { $push: {records: { date: formatISO(new Date(), { representation: 'date' }), pv, uv: uv.size }}});
+
     await copyFile(process.env.NGINX_LOG_PATH, `${dirname(process.env.NGINX_LOG_PATH)}/access.${format(new Date(), 'yyyyMMdd')}.log`);
 
     await writeFile(process.env.NGINX_LOG_PATH, '');
@@ -86,7 +98,7 @@ async function clearCount() {
 
     const removeDate = subDays(new Date(), 7);
     const removeResult = await db.collection(COLLECTIONS.ACCESS_ERROR).deleteMany({ time: { $lt: removeDate } });
-    logger.info(`Removed ${removeResult.deletedCount} before ${removeDate}`);
+    logger.info(`Removed error record ${removeResult.deletedCount} before ${format(removeDate, 'yyyy-MM-dd')}`);
     await collection.updateMany({}, [{ $set: { pre_daily: "$daily", daily: 0 } }]);
     logger.info(`cleared daily records`);
     if (now.getDay() === 0) {
@@ -103,11 +115,18 @@ async function clearCount() {
         }
     }
 
+    // pop app access records
+    await db.collection(COLLECTIONS.APP_ACCESS_RECORD).updateOne(
+        { _id: 'all', records: { $size: 30 } },
+        { $pop: { records: -1 } }
+    );
 }
 
 async function saveToDb(record: AccessRecord): Promise<void> {
     // all
     await saveCount('all', '*');
+    pv++;
+    uv.add(record.ip);
 
     // invaild request
     if (!record.url || record.status >= 400) {

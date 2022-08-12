@@ -2,7 +2,7 @@
 import { logger } from "./log";
 import { COLLECTIONS, CONFIG_KEYS, db } from "./mongo";
 
-const PATCH_RECORD_NUM = 1;
+const PATCH_RECORD_NUM = 2;
 
 export default async function applyPatch() {
     const patchRecord = await db.collection(COLLECTIONS.CONFIG).findOne({ _id: CONFIG_KEYS.CONFIG_PATCH_RECORD });
@@ -23,22 +23,5 @@ export default async function applyPatch() {
 }
 
 async function doPatch() {
-    const blogs = await db.collection(COLLECTIONS.ACCESS_COUNT).find(
-        { _id: { $regex: /^\d{4}-\d{2}-\d{2}-[\w-]+\.html$/ } }
-    ).toArray();
-
-    if (blogs.length) {
-        blogs.map(v => {
-            v._id = v._id.match(/^(\d{4}-\d{2}-\d{2}-)?([\w-\/]+\.html)$/)[2].replace(/_/, '-');
-            v.url = `/${v._id}`;
-            return v;
-        });
-
-        const insert = await db.collection(COLLECTIONS.ACCESS_COUNT).insertMany(blogs)
-        logger.info(`inserted: ${insert.insertedCount}`);
-
-        const deleted = await db.collection(COLLECTIONS.ACCESS_COUNT).deleteMany({ _id: { $regex: /^\d{4}-\d{2}-\d{2}-[\w-]+\.html$/ } });
-        logger.info(`deleted: ${deleted.deletedCount}`);
-    }
-
+   await db.collection(COLLECTIONS.APP_ACCESS_RECORD).insertOne({_id: 'all', records: []});
 }

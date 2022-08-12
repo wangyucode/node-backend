@@ -23,7 +23,7 @@ export default function setupCron() {
         logger.info("dailyJob started!");
         processNginxLog()
     });
-    logger.debug('dailyJob->', dailyJob.nextDates(3));
+    logger.info('dailyJob->', dailyJob.nextDates(3));
     dailyJob.start();
 }
 
