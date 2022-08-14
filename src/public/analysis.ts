@@ -27,6 +27,26 @@ export async function getAll(ctx: Context) {
 }
 
 export async function getErrors(ctx: Context) {
-    const errors = await db.collection(COLLECTIONS.ACCESS_ERROR).find().toArray();
-    ctx.body = getDataResult(errors);
+    let page = Number.parseInt(ctx.query.page as string);
+    const size = Number.parseInt(ctx.query.size as string);
+    const status = Number.parseInt(ctx.query.status as string);
+    if (Number.isNaN(size) || size <= 0) ctx.throw(400, 'size required');
+    if (Number.isNaN(page) || page < 0) page = 0;
+    const result = db.collection(COLLECTIONS.ACCESS_ERROR).find(
+        status > 0 ? { status } : null,
+        {
+            projection: {_id: 0},
+            sort: {
+                time: -1,
+            }
+        }
+    );
+    const total = await result.count();
+    const items = await result.skip(page * size).limit(size).toArray();
+    ctx.body = getDataResult({ page, size, items, total });
+}
+
+export async function getRecords(ctx: Context) {
+    const records = await db.collection(COLLECTIONS.APP_ACCESS_RECORD).findOne({ _id: ctx.query.id || 'all' });
+    ctx.body = getDataResult(records);
 }

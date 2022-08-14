@@ -1,6 +1,6 @@
 import { Db, MongoClient } from "mongodb"
 import { logger } from "./log";
-import { email, MY_EMAIL } from "./mail";
+import { ADMIN_EMAIL, email } from "./mail";
 
 
 const uri = process.env.MONGODB_URI;
@@ -42,6 +42,6 @@ export async function connectToDb() {
         logger.info("Connected successfully to mongodb");
     } catch (e) {
         logger.error("mongo connect error", e);
-        await email(MY_EMAIL, "[node-backend] can not connect to mongodb", e.toString())
+        email(ADMIN_EMAIL, "[node-backend] can not connect to mongodb", e.toString())
     }
 }

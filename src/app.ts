@@ -9,7 +9,7 @@ import { connectToDb } from './mongo';
 import getRouter from './router';
 import setupCron from './cron';
 import applyPatch from './patch';
-import { email, MY_EMAIL } from './mail';
+import { email, ADMIN_EMAIL } from './mail';
 
 function startHttpServer() {
     // koa server
@@ -38,9 +38,9 @@ connectToDb()
     .then(setupCron)
     .then(() => {
         logger.info('server listening on 8082');
-        if (isProd()) email(MY_EMAIL, 'node-backend 已启动', `node-backend 启动于: ${new Date().toString()}.`);
+        isProd() && email(ADMIN_EMAIL, 'node-backend 已启动', `node-backend 启动于: ${new Date().toString()}.`);
     })
     .catch((err) => {
         logger.error('node-backend 启动时发生错误', err);
-        if (isProd()) email(MY_EMAIL, 'node-backend 启动失败', JSON.stringify(err));
+        isProd() && email(ADMIN_EMAIL, 'node-backend 启动失败', JSON.stringify(err));
     });

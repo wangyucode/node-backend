@@ -37,6 +37,7 @@ export default function getRouter(): Router {
     router.get('/analysis/blogs', analysis.getBlogs);
     router.get('/analysis/apps', analysis.getApps);
     router.get('/analysis/all', analysis.getAll);
+    router.get('/analysis/records', analysis.getRecords);
     router.get('/analysis/errors', analysis.getErrors);
 
     router.get('/a11/sign', a11.getWxSign);

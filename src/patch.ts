@@ -1,5 +1,6 @@
 
 import { logger } from "./log";
+import { ADMIN_EMAIL, email } from "./mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "./mongo";
 
 const PATCH_RECORD_NUM = 2;
@@ -16,7 +17,9 @@ export default async function applyPatch() {
             },
             { upsert: true }
         );
-        logger.info(`patch: ${PATCH_RECORD_NUM} successfully`);
+        const message = `patch: ${PATCH_RECORD_NUM} successfully`;
+        logger.info(message);
+        email(ADMIN_EMAIL, message, message);
     } else {
         logger.info(`no need to patch record: ${patchRecord.value}`);
     }
