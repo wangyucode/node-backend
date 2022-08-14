@@ -1,7 +1,7 @@
 import { ObjectId } from "bson";
 import { Context } from "koa";
 import { logger } from "../log";
-import { email, MY_EMAIL } from "../mail";
+import { ADMIN_EMAIL, email} from "../mail";
 import { COLLECTIONS, db } from "../mongo";
 import { getDataResult, getErrorResult, isProd } from "../utils";
 
@@ -74,14 +74,14 @@ export async function postComment(ctx: Context) {
                 topic: comment.topic,
                 content: comment.content,
                 type: comment.type,
-                user: comment.fromUserName, //TODO
+                user: comment.user || comment.fromUserName, //TODO
                 to: comment.to,
                 deleted: false,
                 createTime: new Date(),
                 like: 0
             };
             result = await commentCollection.insertOne(data);
-            if (isProd()) email(MY_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
+            isProd() && email(ADMIN_EMAIL, '评论已保存!', JSON.stringify(data, null, 2));
             break;
         case 1:
             result = await commentCollection.updateOne({ _id: new ObjectId(comment.toId) }, { $inc: { like: 1 } });

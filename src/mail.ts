@@ -1,27 +1,29 @@
 import * as nodemailer from 'nodemailer';
 import { logger } from './log';
 
-export const MY_EMAIL = "wangyu@wycode.cn";
+export const ADMIN_EMAIL = ['wangyu@wycode.cn', 'huangyi@wycode.cn'];
 
 let transporter = null;
 
-export async function email(to: string, subject: string, text: string) {
+export async function email(to: string[], subject: string, text: string) {
     if (transporter === null) {
         transporter = nodemailer.createTransport({
             host: "smtp.exmail.qq.com",
             port: 465,
             secure: true,
             auth: {
-                user: MY_EMAIL,
+                user: ADMIN_EMAIL[0],
                 pass: process.env.MAIL_PASSWORD
             }
         });
     }
 
-    var message = { from: MY_EMAIL, to, subject, text };
+    const message = { from: ADMIN_EMAIL[0], subject, text, to: null };
 
-    let result = await transporter.sendMail(message);
+    const sendingPromises = to.map(t => {
+        message.to = t;
+        return transporter.sendMail(message);
+    });
 
-    logger.info('email-->', result);
-
+    Promise.all(sendingPromises).then(() => logger.info(`Sent mail to ${to.toString()}`));
 }

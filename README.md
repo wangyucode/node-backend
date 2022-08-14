@@ -3,7 +3,7 @@
 ## development
 
 ```bash
-$ npm run test
+$ npm test
 ```
 to run specific function.
 

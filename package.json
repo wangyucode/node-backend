@@ -36,7 +36,7 @@
     "start": "ts-node src/app.ts",
     "start:prod": "npm ci && node app.js",
     "build": "tsc",
-    "test": "ts-node src/test.ts"
+    "test": "ts-node test.ts"
   },
   "author": "wycode.cn",
   "license": "GPL-3.0"
