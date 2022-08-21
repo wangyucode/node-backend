@@ -2,15 +2,16 @@
 import { logger } from "./log";
 import { ADMIN_EMAIL, email } from "./mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "./mongo";
+import { isProd } from "./utils";
 
-const PATCH_RECORD_NUM = 2;
+const PATCH_RECORD_NUM = 3;
 
 export default async function applyPatch() {
     const patchRecord = await db.collection(COLLECTIONS.CONFIG).findOne({ _id: CONFIG_KEYS.CONFIG_PATCH_RECORD });
 
     if (!patchRecord || patchRecord.value < PATCH_RECORD_NUM) {
         logger.info(`start patch: ${PATCH_RECORD_NUM}`);
-        await doPatch();
+        const result = await doPatch();
         await db.collection(COLLECTIONS.CONFIG).updateOne({ _id: CONFIG_KEYS.CONFIG_PATCH_RECORD },
             {
                 $set: { _id: CONFIG_KEYS.CONFIG_PATCH_RECORD, value: PATCH_RECORD_NUM, date: new Date() }
@@ -18,13 +19,18 @@ export default async function applyPatch() {
             { upsert: true }
         );
         const message = `patch: ${PATCH_RECORD_NUM} successfully`;
-        logger.info(message);
-        email(ADMIN_EMAIL, message, message);
+        logger.info(message, result);
+        isProd() && email(ADMIN_EMAIL, message, JSON.stringify(result));
     } else {
         logger.info(`no need to patch record: ${patchRecord.value}`);
     }
 }
 
-async function doPatch() {
-   await db.collection(COLLECTIONS.APP_ACCESS_RECORD).insertOne({_id: 'all', records: []});
+async function doPatch(): Promise<any> {
+    await db.collection(COLLECTIONS.CLIPBOARD).updateMany(
+        { tips: { $nin: [null, ''] } },
+        { $set: { content: { $concat: ['$content', '\n', '$tips'] } } },
+    );
+
+    return db.collection(COLLECTIONS.CLIPBOARD).updateMany({}, { $unset: { tips: "", _class: "" } });
 }

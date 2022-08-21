@@ -30,7 +30,7 @@ export async function saveById(ctx: Context) {
     const result = await cc.updateOne(
         { _id: data._id },
         {
-            $set: { content: data.content, tips: data.tips, lastUpdate: new Date() }
+            $set: { content: data.content, lastUpdate: new Date() }
         });
     ctx.body = result.matchedCount ? getDataResult(data._id) : getErrorResult('not exist');
 }
