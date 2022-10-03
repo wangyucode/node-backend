@@ -7,7 +7,7 @@ import * as auth from './auth';
 import * as admin_dota from './admin/dota';
 import * as dota from './public/dota';
 import * as clipboard from './public/clipboard';
-import * as a11 from './public/a11'
+// import * as a11 from './public/a11'
 import * as analysis from './public/analysis'
 
 export default function getRouter(): Router {
@@ -36,11 +36,10 @@ export default function getRouter(): Router {
 
     router.get('/analysis/blogs', analysis.getBlogs);
     router.get('/analysis/apps', analysis.getApps);
-    router.get('/analysis/all', analysis.getAll);
     router.get('/analysis/records', analysis.getRecords);
     router.get('/analysis/errors', analysis.getErrors);
 
-    router.get('/a11/sign', a11.getWxSign);
+    // router.get('/a11/sign', a11.getWxSign);
 
     router.get('/login', auth.login);
 

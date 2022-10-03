@@ -1,4 +1,6 @@
-import { formatISO, subDays, subHours } from "date-fns";
+import { info } from "console";
+import { formatISO, parse, parseISO, subDays, subHours } from "date-fns";
+import { processNginxLog } from "./src/analysis/nginx-log";
 import { logger } from "./src/log";
 import { COLLECTIONS, connectToDb, db } from "./src/mongo";
 import applyPatch from "./src/patch";
@@ -8,9 +10,9 @@ const ctx: any = { query: { size: 10, status: '400' } };
 
 async function test() {
     await connectToDb();
-    await applyPatch();
-    //     await getErrors(ctx)
-    logger.info(await db.collection(COLLECTIONS.CLIPBOARD).find({ tips: { $nin: [null, ''] } }).toArray());
+    // await processNginxLog();
+
+    process.exit(0);
 }
 
 test();

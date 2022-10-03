@@ -30,4 +30,4 @@ export interface DotaNewsNode {
     content: string;
 }
 
-export const Apps = ['dota', 'clipboard', 'comments'];
+export const Apps = ['dota', 'clipboard', 'comments', 'other'];
