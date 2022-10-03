@@ -18,7 +18,7 @@ interface AccessRecord {
 }
 
 let pv: number;
-let sv: number;
+let fv: number;
 let uv: Set<string>;
 let appAccess: Map<string, any>;
 
@@ -33,7 +33,7 @@ export async function processNginxLog(): Promise<void> {
     });
 
     pv = 0;
-    sv = 0;
+    fv = 0;
     uv = new Set();
     appAccess = new Map();
     for await (const line of rl) {
@@ -66,7 +66,7 @@ export async function processNginxLog(): Promise<void> {
 
     rl.close();
 
-    await save('all', '*', { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv, sv, uv: uv.size });
+    await save('all', '*', { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv, fv, uv: uv.size });
 
     for (const [key, value] of appAccess) {
         await save(key, value.url, { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv: value.pv });
@@ -77,7 +77,7 @@ export async function processNginxLog(): Promise<void> {
     await writeFile(process.env.NGINX_LOG_PATH, '');
 
     pv = 0;
-    sv = 0;
+    fv = 0;
     uv = null;
     appAccess = null;
 
@@ -117,7 +117,7 @@ async function removeOldErrors() {
 
 async function processRecord(record: AccessRecord): Promise<void> {
     pv++;
-    if (record.status === 200) sv++;
+    if (record.status !== 200) fv++;
     uv.add(record.ip);
 
     // invaild request

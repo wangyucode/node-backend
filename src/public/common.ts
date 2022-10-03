@@ -96,3 +96,11 @@ async function getCommentApp(app: string, key: string) {
     const commentApps = db.collection(COLLECTIONS.COMMENT_APP);
     return await commentApps.findOne({ name: app, accessKey: key });
 }
+
+export async function sendNotification(ctx: Context) {
+    if (!ctx.query.k) ctx.throw(400, 'k required');
+    if (!ctx.query.s) ctx.throw(400, 's required');
+    if (!ctx.query.c) ctx.throw(400, 'c required');
+    if (ctx.query.k !== process.env.MAIL_PASSWORD) ctx.throw(403, 'invalid k');
+    await email(ADMIN_EMAIL, ctx.query.s as string, ctx.query.c as string);
+}
