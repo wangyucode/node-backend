@@ -1,10 +1,10 @@
 import Application from 'koa';
 import cors from '@koa/cors';
 import Router from '@koa/router';
+import bodyParser from "koa-bodyparser";
 
 import { logger } from "./log";
 import { getErrorResult, isProd } from "./utils";
-import bodyParser = require("koa-bodyparser");
 import { connectToDb } from './mongo';
 import getRouter from './router';
 import setupCron from './cron';

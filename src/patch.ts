@@ -1,5 +1,5 @@
 
-import { formatISO, parse, subDays } from "date-fns";
+import { format, parse, parseISO, subDays } from "date-fns";
 import { createReadStream } from "fs";
 import { createInterface } from "readline";
 import { logger } from "./log";
@@ -31,7 +31,17 @@ export default async function applyPatch() {
 }
 
 async function doPatch(): Promise<any> {
-    const readStream = createReadStream('./log/access.20221004.log');
+
+    const records = await db.collection(COLLECTIONS.ACCESS_COUNT).find({}).toArray();
+    records.forEach(async record => {
+        record.records = record.records.map(r => {
+           r.date= format(parseISO(r.date), 'M/d')
+           return r;
+        });
+        await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({_id: record._id}, {$set:{records: record.records}});
+    });
+
+    const readStream = createReadStream('/app/nginx/log/access.20221004.log');
     const rl = createInterface({
         input: readStream,
         crlfDelay: Infinity
@@ -109,7 +119,7 @@ async function doPatch(): Promise<any> {
             monthly: 0,
             daily: 0
         };
-        record.records.push({ date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv: value.pv });
+        record.records.push({ date: format(subDays(new Date(), 1), 'M/d'), pv: value.pv });
         record.pre_daily = record.daily;
         record.url = value.url;
         record.daily = value.pv;
@@ -118,7 +128,6 @@ async function doPatch(): Promise<any> {
         record.monthly += value.pv;
         if (record.records.length > 7) record.weekly -= record.records[record.records.length - 8].pv;
         if (record.records.length > 30) record.monthly -= record.records.shift().pv;
-        console.log(record);
         await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id : key}, { $set: record }, { upsert: true });
     }
     const result = appAccess.toString();
