@@ -68,7 +68,6 @@ export async function processNginxLog(): Promise<void> {
 
     await save('all', '*', { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv, sv, uv: uv.size });
 
-    // @ts-ignore
     for (const [key, value] of appAccess) {
         await save(key, value.url, { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv: value.pv });
     }
@@ -105,7 +104,7 @@ async function save(_id: string, url: string, data: any) {
     if (record.records.length > 7) record.weekly -= record.records[record.records.length - 8].pv;
     if (record.records.length > 30) record.monthly -= record.records.shift().pv;
     console.log(record);
-    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id }, { $set: record }));
+    await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id }, { $set: record }, { upsert: true });
 }
 
 
@@ -144,7 +143,7 @@ async function processRecord(record: AccessRecord): Promise<void> {
     } else if (/^\/node\/.*/.test(record.url)) { // other apps
         await addCount('other', '/node/*');
     } else if (/^\/(dota2static)|(esportsadmin)\/.*/.test(record.url)) { // dota image proxy
-        await addCount('dotaImageProxy', 'dota2static,esportsadmin');
+        await addCount('proxy', 'dota2static,esportsadmin');
     } else if (/\.(js)|(css)|(xml)|(svg)|(jpe?g)|(png)|(html)|(txt)|(ico)|(apk)|(mp4)$/.test(record.url)) {
         // ignore static files
     } else if (/^\/blog\/(page)|(tags)|(category)\/.+$/.test(record.url)) {
