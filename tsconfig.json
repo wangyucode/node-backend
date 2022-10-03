@@ -4,7 +4,7 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "target": "ES2015",
-        "moduleResolution": "node"
+        "moduleResolution": "Node16",
     },
     "include": [
         "src/**/*",
