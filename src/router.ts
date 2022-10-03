@@ -16,6 +16,7 @@ export default function getRouter(): Router {
     router.get('/config', common.getConfig);
     router.post('/comments', common.postComment);
     router.get('/comments', common.getComments);
+    router.get('/mail', common.sendNotification);
 
     router.get('/dota/news', dota.getNews);
     router.get('/dota/news/:id', dota.getNewsDetail);
