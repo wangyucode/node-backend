@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
+        "lib": ["ESNext"],
+        "module": "CommonJS",
         "outDir": "dist",
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "target": "ES2015",
-        "moduleResolution": "Node16",
+        "target": "ESNext",
+        "moduleResolution": "Node",
     },
     "include": [
         "src/**/*",

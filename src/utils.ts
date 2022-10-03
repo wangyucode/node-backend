@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 
 import { CommonResult } from "./types";
 
-export function sleep(ms: number): Promise<number> {
+export function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
