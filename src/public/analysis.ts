@@ -6,7 +6,7 @@ import { getDataResult } from "../utils";
 
 export async function getBlogs(ctx: Context) {
     const blogs = await db.collection(COLLECTIONS.ACCESS_COUNT).find(
-        { _id: { $regex: /^[\w-\/]+\.html$/ } },
+        { _id: { $regex: /^\/blog\/[\w-]+$/ } },
         {
             sort: { monthly: -1 },
             limit: 10
@@ -19,11 +19,6 @@ export async function getBlogs(ctx: Context) {
 export async function getApps(ctx: Context) {
     const apps = await db.collection(COLLECTIONS.ACCESS_COUNT).find({ _id: { $in: Apps } }).toArray();
     ctx.body = getDataResult(apps);
-}
-
-export async function getAll(ctx: Context) {
-    const all = await db.collection(COLLECTIONS.ACCESS_COUNT).findOne({ _id: 'all' })
-    ctx.body = getDataResult(all);
 }
 
 export async function getErrors(ctx: Context) {
@@ -47,6 +42,6 @@ export async function getErrors(ctx: Context) {
 }
 
 export async function getRecords(ctx: Context) {
-    const records = await db.collection(COLLECTIONS.APP_ACCESS_RECORD).findOne({ _id: ctx.query.id || 'all' });
+    const records = await db.collection(COLLECTIONS.ACCESS_COUNT).findOne({ _id: ctx.query.id || 'all' });
     ctx.body = getDataResult(records);
 }

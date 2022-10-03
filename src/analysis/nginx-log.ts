@@ -7,20 +7,6 @@ import { createInterface } from 'readline';
 import { logger } from '../log';
 import { COLLECTIONS, db } from '../mongo';
 
-interface UrlAccessCount {
-    _id: string;
-    url: string;
-    daily: number;
-    pre_daily: number;
-    weekly: number;
-    pre_weekly: number;
-    monthly: number;
-    pre_monthly: number;
-    yearly: number;
-    pre_yearly: number;
-    total: number;
-}
-
 interface AccessRecord {
     url?: string;
     method?: string;
@@ -31,16 +17,13 @@ interface AccessRecord {
     request: string;
 }
 
-export interface AllAccessRecords {
-    _id: string;
-    records: { date: string, uv: number, pv: number }[]
-}
-
 let pv: number;
+let sv: number;
 let uv: Set<string>;
+let appAccess: Map<string, any>;
 
 export async function processNginxLog(): Promise<void> {
-    await clearCount();
+    await removeOldErrors();
 
     let accessCount = 0;
     const readStream = createReadStream(process.env.NGINX_LOG_PATH);
@@ -50,10 +33,12 @@ export async function processNginxLog(): Promise<void> {
     });
 
     pv = 0;
+    sv = 0;
     uv = new Set();
+    appAccess = new Map();
     for await (const line of rl) {
         accessCount++;
-        const params = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - .+ \[(.*)\] "(.*)" (\d{3}) \d+ ".+" "(.*)"$/);
+        const params = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - .+ \[(.*)\] "(.*)" (\d{3}) \d+ ".*" "(.*)"$/);
 
         if (!params) {
             logger.error('Unexpected line:', line);
@@ -76,118 +61,115 @@ export async function processNginxLog(): Promise<void> {
 
         const record: AccessRecord = { ip, time, method, url, status, request, agent };
 
-        await saveToDb(record);
+        await processRecord(record);
     }
 
     rl.close();
 
-    await db.collection(COLLECTIONS.APP_ACCESS_RECORD).updateOne({ _id: 'all' }, { $push: {records: { date: formatISO(new Date(), { representation: 'date' }), pv, uv: uv.size }}});
+    await save('all', '*', { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv, sv, uv: uv.size });
+
+    // @ts-ignore
+    for (const [key, value] of appAccess) {
+        await save(key, value.url, { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv: value.pv });
+    }
 
     await copyFile(process.env.NGINX_LOG_PATH, `${dirname(process.env.NGINX_LOG_PATH)}/access.${format(new Date(), 'yyyyMMdd')}.log`);
 
     await writeFile(process.env.NGINX_LOG_PATH, '');
 
+    pv = 0;
+    sv = 0;
+    uv = null;
+    appAccess = null;
+
     logger.info(`${accessCount} access log processed successfully`);
 }
 
-
-async function clearCount() {
-    const now = new Date();
-
-    const collection = db.collection(COLLECTIONS.ACCESS_COUNT);
-
-    const removeDate = subDays(new Date(), 7);
-    const removeResult = await db.collection(COLLECTIONS.ACCESS_ERROR).deleteMany({ time: { $lt: removeDate } });
-    logger.info(`Removed error record ${removeResult.deletedCount} before ${format(removeDate, 'yyyy-MM-dd')}`);
-    await collection.updateMany({}, [{ $set: { pre_daily: "$daily", daily: 0 } }]);
-    logger.info(`cleared daily records`);
-    if (now.getDay() === 0) {
-        await collection.updateMany({}, [{ $set: { weekly: 0, pre_weekly: '$weekly' } }]);
-        logger.info(`cleared weekly records`);
-    }
-
-    if (now.getDate() === 1) {
-        await collection.updateMany({}, [{ $set: { monthly: 0, pre_monthly: '$monthly' } }]);
-        logger.info(`cleared monthly records`);
-        if (now.getMonth() === 0) {
-            await collection.updateMany({}, [{ $set: { yearly: 0, pre_yearly: '$yearly' } }]);
-            logger.info(`cleared yearly records`);
-        }
-    }
-
-    // pop app access records
-    await db.collection(COLLECTIONS.APP_ACCESS_RECORD).updateOne(
-        { _id: 'all', records: { $size: 30 } },
-        { $pop: { records: -1 } }
-    );
+async function save(_id: string, url: string, data: any) {
+    const record = await db.collection(COLLECTIONS.ACCESS_COUNT).findOne({ _id })
+        || {
+        records: [],
+        pre_daily: 0,
+        total: 0,
+        weekly: 0,
+        monthly: 0,
+        daily: 0
+    };
+    record.records.push(data);
+    record.pre_daily = record.daily;
+    record.url = url;
+    record.daily = data.pv;
+    record.total += data.pv;
+    record.weekly += data.pv;
+    record.monthly += data.pv;
+    if (record.records.length > 7) record.weekly -= record.records[record.records.length - 8].pv;
+    if (record.records.length > 30) record.monthly -= record.records.shift().pv;
+    console.log(record);
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id }, { $set: record }));
 }
 
-async function saveToDb(record: AccessRecord): Promise<void> {
-    // all
-    await saveCount('all', '*');
+
+async function removeOldErrors() {
+    const now = new Date();
+    const removeDate = subDays(now, 7);
+    const removeResult = await db.collection(COLLECTIONS.ACCESS_ERROR).deleteMany({ time: { $lt: removeDate } });
+    logger.info(`Removed error record ${removeResult.deletedCount} before ${format(removeDate, 'yyyy-MM-dd')}`);
+}
+
+async function processRecord(record: AccessRecord): Promise<void> {
     pv++;
+    if (record.status === 200) sv++;
     uv.add(record.ip);
 
     // invaild request
-    if (!record.url || record.status >= 400) {
+    if (!record.url || record.status != 200) {
         await saveError(record);
         return;
     }
 
     // blog
-    if (/^\/[\w-\/]+\.html$/.test(record.url)) {
-        const matches = record.url.match(/^\/(\d{4}-\d{2}-\d{2}-)?([\w-\/]+\.html)$/);
+    if (/^\/blog\/[\w-]+$/.test(record.url)) {
+        const matches = record.url.match(/^\/blog\/([\w-]+)$/);
         if (matches) {
-            await saveCount(matches[2], record.url);
+            await addCount(`blog_${matches[1]}`, record.url);
         } else {
             logger.warn('unexpected blog URL: ' + record.url);
         }
-
     } else if (/^\/node\/dota.*/.test(record.url)) { // dota
-        await saveCount('dota', '/node/dota');
+        await addCount('dota', '/node/dota');
     } else if (/^\/node\/comments.*/.test(record.url)) { // comments
-        await saveCount('comments', '/node/comments');
+        await addCount('comments', '/node/comments');
     } else if (/^\/node\/clipboard.*/.test(record.url)) { // clipboard
-        await saveCount('clipboard', '/node/clipboard');
-    } else if (/^\/(dota2static)|(esportsadmin)\/.*/.test(record.url)) { 
-        // ignore dota image proxy
-    } else if (/\.(js)|(css)$/.test(record.url)) { 
-        // ignore js & css
+        await addCount('clipboard', '/node/clipboard');
+    } else if (/^\/node\/.*/.test(record.url)) { // other apps
+        await addCount('other', '/node/*');
+    } else if (/^\/(dota2static)|(esportsadmin)\/.*/.test(record.url)) { // dota image proxy
+        await addCount('dotaImageProxy', 'dota2static,esportsadmin');
+    } else if (/\.(js)|(css)|(xml)|(svg)|(jpe?g)|(png)|(html)|(txt)|(ico)|(apk)|(mp4)$/.test(record.url)) {
+        // ignore static files
+    } else if (/^\/blog\/(page)|(tags)|(category)\/.+$/.test(record.url)) {
+        // ignore /blog/page, /blog/tags, /blog/category
+    } else if (record.url === '/') {
+        // ignore /
+    } else if (record.url.startsWith('/mongo')) {
+        // ignore /
     } else {
         logger.warn('unexpected URL: ' + record.url);
     }
 }
 
-async function saveCount(_id: string, url: string) {
-    const collection = db.collection(COLLECTIONS.ACCESS_COUNT);
-    let accessCount: UrlAccessCount = await collection.findOne({ _id });
-    if (accessCount) {
-        accessCount.total += 1;
-        accessCount.yearly += 1;
-        accessCount.monthly += 1;
-        accessCount.weekly += 1;
-        accessCount.daily += 1;
+async function addCount(_id: string, url: string) {
+    let record = appAccess.get(_id);
+    if (record) {
+        record.pv += 1;
     } else {
-        accessCount = {
-            _id,
-            url,
-            total: 1,
-            daily: 1,
-            monthly: 1,
-            weekly: 1,
-            yearly: 1,
-            pre_daily: 0,
-            pre_monthly: 0,
-            pre_weekly: 0,
-            pre_yearly: 0
-        }
+        record = { _id, url, pv: 1 }
     }
 
-    await collection.updateOne({ _id }, [{ $set: accessCount }], { upsert: true });
+    appAccess.set(_id, record);
 }
 
 async function saveError(record: AccessRecord) {
-    const collection = db.collection(COLLECTIONS.ACCESS_ERROR);
-    await collection.insertOne(record);
+    await db.collection(COLLECTIONS.ACCESS_ERROR).insertOne(record);
 }
 

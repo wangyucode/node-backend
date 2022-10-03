@@ -1,10 +1,11 @@
 
+import { formatISO, parseISO, subDays } from "date-fns";
 import { logger } from "./log";
 import { ADMIN_EMAIL, email } from "./mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "./mongo";
 import { isProd } from "./utils";
 
-const PATCH_RECORD_NUM = 3;
+const PATCH_RECORD_NUM = 4;
 
 export default async function applyPatch() {
     const patchRecord = await db.collection(COLLECTIONS.CONFIG).findOne({ _id: CONFIG_KEYS.CONFIG_PATCH_RECORD });
@@ -27,10 +28,23 @@ export default async function applyPatch() {
 }
 
 async function doPatch(): Promise<any> {
-    await db.collection(COLLECTIONS.CLIPBOARD).updateMany(
-        { tips: { $nin: [null, ''] } },
-        { $set: { content: { $concat: ['$content', '\n', '$tips'] } } },
-    );
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).deleteMany(
+        { _id: { $regex: /^[\w-\/]+\.html$/ } },
+    ));
 
-    return db.collection(COLLECTIONS.CLIPBOARD).updateMany({}, { $unset: { tips: "", _class: "" } });
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateMany({}, { $unset: { pre_monthly: "", pre_yearly: "", pre_weekly: "", yearly: "" } }));
+
+    const result = await db.collection(COLLECTIONS.APP_ACCESS_RECORD).findOne({ _id: 'all' });
+
+    result.records = result.records.map(record => {
+        record.date = formatISO(subDays(parseISO(record.date), 1), { representation: 'date' });
+        return record;
+    });
+
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id: 'all' }, { $set: { records: result.records } }));
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id: 'comments' }, { $set: { records: [] } }));
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id: 'dota' }, { $set: { records: [] } }));
+    logger.info(await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id: 'clipboard' }, { $set: { records: [] } }));
+
+    return logger.info(await db.dropCollection(COLLECTIONS.APP_ACCESS_RECORD))
 }

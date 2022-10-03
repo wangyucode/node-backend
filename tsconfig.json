@@ -3,10 +3,12 @@
         "outDir": "dist",
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "downlevelIteration": true
     },
     "include": [
-        "src/**/*"
-, "test.ts"    ],
+        "src/**/*",
+        "test.ts"
+    ],
     "exclude": [
         "node_modules",
         "**/*.spec.ts"
