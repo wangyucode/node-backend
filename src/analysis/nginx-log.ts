@@ -66,10 +66,12 @@ export async function processNginxLog(): Promise<void> {
 
     rl.close();
 
-    await save('all', '*', { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv, fv, uv: uv.size });
+    const date = format(subDays(new Date(), 1), 'M/d')
+
+    await save('all', '*', { date, pv, fv, uv: uv.size });
 
     for (const [key, value] of appAccess) {
-        await save(key, value.url, { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv: value.pv });
+        await save(key, value.url, { date, pv: value.pv });
     }
 
     await copyFile(process.env.NGINX_LOG_PATH, `${dirname(process.env.NGINX_LOG_PATH)}/access.${format(new Date(), 'yyyyMMdd')}.log`);
