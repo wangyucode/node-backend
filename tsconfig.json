@@ -3,8 +3,8 @@
         "outDir": "dist",
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "target": "ES2015",
-        "moduleResolution": "Node16",
+        "target": "es2015",
+        "moduleResolution": "node",
     },
     "include": [
         "src/**/*",

@@ -6,7 +6,7 @@ import { getDataResult } from "../utils";
 
 export async function getBlogs(ctx: Context) {
     const blogs = await db.collection(COLLECTIONS.ACCESS_COUNT).find(
-        { _id: { $regex: /^\/blog\/[\w-]+$/ } },
+        { _id: { $regex: /^blog_[\w-]+$/ } },
         {
             sort: { monthly: -1 },
             limit: 10

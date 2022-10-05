@@ -1,4 +1,5 @@
-import { format, formatISO, parse, subDays } from 'date-fns';
+import { head } from 'lodash';
+import { format, parse, subDays } from 'date-fns';
 import { createReadStream } from 'fs';
 import { copyFile, writeFile } from 'fs/promises';
 import { dirname } from 'path';
@@ -103,9 +104,12 @@ async function save(_id: string, url: string, data: any) {
     record.total += data.pv;
     record.weekly += data.pv;
     record.monthly += data.pv;
-    if (record.records.length > 7) record.weekly -= record.records[record.records.length - 8].pv;
-    if (record.records.length > 30) record.monthly -= record.records.shift().pv;
-    console.log(record);
+    const weekAgo = record.records.find(r => (parse(data.date, 'M/d', new Date()).getTime() - parse(r.date, 'M/d', new Date()).getTime()) / 1000 / 3600 / 24 === 7);
+    if (weekAgo) record.weekly -= weekAgo.pv;
+    const monthAgo = head(record.records);
+    if (monthAgo && (parse(data.date, 'M/d', new Date()).getTime() - parse(monthAgo.date, 'M/d', new Date()).getTime()) / 1000 / 3600 / 24 > 30) {
+        record.monthly -= record.records.shift().pv;
+    }
     await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id }, { $set: record }, { upsert: true });
 }
 
