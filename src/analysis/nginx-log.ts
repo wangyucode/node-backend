@@ -1,4 +1,5 @@
-import { format, formatISO, parse, subDays } from 'date-fns';
+import { head } from 'lodash';
+import { format, parse, subDays } from 'date-fns';
 import { createReadStream } from 'fs';
 import { copyFile, writeFile } from 'fs/promises';
 import { dirname } from 'path';
@@ -66,10 +67,12 @@ export async function processNginxLog(): Promise<void> {
 
     rl.close();
 
-    await save('all', '*', { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv, fv, uv: uv.size });
+    const date = format(subDays(new Date(), 1), 'M/d')
+
+    await save('all', '*', { date, pv, fv, uv: uv.size });
 
     for (const [key, value] of appAccess) {
-        await save(key, value.url, { date: formatISO(subDays(new Date(), 1), { representation: 'date' }), pv: value.pv });
+        await save(key, value.url, { date, pv: value.pv });
     }
 
     await copyFile(process.env.NGINX_LOG_PATH, `${dirname(process.env.NGINX_LOG_PATH)}/access.${format(new Date(), 'yyyyMMdd')}.log`);
@@ -101,9 +104,12 @@ async function save(_id: string, url: string, data: any) {
     record.total += data.pv;
     record.weekly += data.pv;
     record.monthly += data.pv;
-    if (record.records.length > 7) record.weekly -= record.records[record.records.length - 8].pv;
-    if (record.records.length > 30) record.monthly -= record.records.shift().pv;
-    console.log(record);
+    const weekAgo = record.records.find(r => (parse(data.date, 'M/d', new Date()).getTime() - parse(r.date, 'M/d', new Date()).getTime()) / 1000 / 3600 / 24 === 7);
+    if (weekAgo) record.weekly -= weekAgo.pv;
+    const monthAgo = head(record.records);
+    if (monthAgo && (parse(data.date, 'M/d', new Date()).getTime() - parse(monthAgo.date, 'M/d', new Date()).getTime()) / 1000 / 3600 / 24 > 30) {
+        record.monthly -= record.records.shift().pv;
+    }
     await db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({ _id }, { $set: record }, { upsert: true });
 }
 
