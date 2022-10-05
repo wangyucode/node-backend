@@ -102,5 +102,7 @@ export async function sendNotification(ctx: Context) {
     if (!ctx.query.s) ctx.throw(400, 's required');
     if (!ctx.query.c) ctx.throw(400, 'c required');
     if (ctx.query.k !== process.env.MAIL_PASSWORD) ctx.throw(403, 'invalid k');
+    const to = (ctx.query.t && (ctx.query.t as string).split(',')) || ADMIN_EMAIL;
     await email(ADMIN_EMAIL, ctx.query.s as string, ctx.query.c as string);
+    ctx.status = 200;
 }
