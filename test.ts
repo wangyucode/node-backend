@@ -1,5 +1,5 @@
 
-import {last,head} from "lodash";
+import {last,head, isEmpty} from "lodash";
 import { format, formatDistanceStrict, formatISO, parse, parseISO, subDays, subHours } from "date-fns";
 import { createReadStream } from "fs";
 import { createInterface } from "readline";
@@ -11,10 +11,10 @@ import applyPatch from "./src/patch";
 
 
 async function test() {
-    await connectToDb();
+    // await connectToDb();
     
-    const date = head([1,3,3]);
-    debugger
+    const date = isEmpty();
+    debugger;
     process.exit(0);
 }
 

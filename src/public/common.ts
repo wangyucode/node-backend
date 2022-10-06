@@ -1,7 +1,8 @@
+import { isEmpty } from "lodash";
 import { ObjectId } from "bson";
 import { Context } from "koa";
 import { logger } from "../log";
-import { ADMIN_EMAIL, email} from "../mail";
+import { ADMIN_EMAIL, email } from "../mail";
 import { COLLECTIONS, db } from "../mongo";
 import { getDataResult, getErrorResult, isProd } from "../utils";
 
@@ -98,11 +99,13 @@ async function getCommentApp(app: string, key: string) {
 }
 
 export async function sendNotification(ctx: Context) {
-    if (!ctx.query.k) ctx.throw(400, 'k required');
-    if (!ctx.query.s) ctx.throw(400, 's required');
-    if (!ctx.query.c) ctx.throw(400, 'c required');
-    if (ctx.query.k !== process.env.MAIL_PASSWORD) ctx.throw(403, 'invalid k');
-    const to = (ctx.query.t && (ctx.query.t as string).split(',')) || ADMIN_EMAIL;
-    await email(ADMIN_EMAIL, ctx.query.s as string, ctx.query.c as string);
+    const { key, subject, content } = ctx.request.body;
+    let { to } = ctx.request.body;
+    if (!key) ctx.throw(400, 'key is required');
+    if (!subject) ctx.throw(400, 'subject is required');
+    if (!content) ctx.throw(400, 'content is required');
+    if (key !== process.env.MAIL_PASSWORD) ctx.throw(403, 'invalid key');
+    if (isEmpty(to)) to = ADMIN_EMAIL;
+    await email(to, ctx.query.s as string, ctx.query.c as string);
     ctx.status = 200;
 }
