@@ -5,9 +5,11 @@ import { setConfig } from './admin/common';
 import { processNginxLog } from './analysis/nginx-log';
 import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
 import { logger } from './log';
+import { isProd } from './utils';
 
 
 export default function setupCron() {
+    if (!isProd()) return;
     // 10:00:00 every Tuesday
     const weeklyJob = new CronJob('0 0 10 * * 2', function () {
         logger.info("weeklyJob started!");

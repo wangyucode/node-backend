@@ -133,8 +133,8 @@ async function processRecord(record: AccessRecord): Promise<void> {
     }
 
     // blog
-    if (/^\/blog\/[\w-]+$/.test(record.url)) {
-        const matches = record.url.match(/^\/blog\/([\w-]+)$/);
+    if (/^\/blog\/[\w-]+\/$/.test(record.url)) {
+        const matches = record.url.match(/^\/blog\/([\w-]+)\/$/);
         if (matches) {
             await addCount(`blog_${matches[1]}`, record.url);
         } else {
@@ -152,12 +152,12 @@ async function processRecord(record: AccessRecord): Promise<void> {
         await addCount('proxy', 'dota2static,esportsadmin');
     } else if (/\.(js)|(css)|(xml)|(svg)|(jpe?g)|(png)|(html)|(txt)|(ico)|(apk)|(mp4)$/.test(record.url)) {
         // ignore static files
-    } else if (/^\/blog\/(page)|(tags)|(category)\/.+$/.test(record.url)) {
+    } else if (/^\/blog\/(page)|(tags)|(category)\/.*$/.test(record.url)) {
         // ignore /blog/page, /blog/tags, /blog/category
-    } else if (record.url === '/') {
-        // ignore /
+    } else if (['/','/lab/','/about/','/admin/','/admin/mongo/'].some(it => it === record.url)) {
+        // ignore
     } else if (record.url.startsWith('/mongo')) {
-        // ignore /
+        // ignore
     } else {
         logger.warn('unexpected URL: ' + record.url);
     }

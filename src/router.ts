@@ -18,16 +18,16 @@ export default function getRouter(): Router {
     router.get('/comments', common.getComments);
     router.post('/mail', common.sendNotification);
 
-    router.get('/dota/news', dota.getNews);
-    router.get('/dota/news/:id', dota.getNewsDetail);
-    router.get('/dota/leagues', dota.getLeagues);
-    router.get('/dota/schedules', dota.getSchedules);
-    router.get('/dota/teams', dota.getTeams);
-    router.get('/dota/items', dota.getItems);
-    router.get('/dota/items/:id', dota.getItemDetail);
-    router.get('/dota/heroes', dota.getHeros);
-    router.get('/dota/heroes/:id', dota.getHeroDetail);
-    router.get('/dota/leaderboard', dota.getLeaderboard);
+    router.get('/dota/news', dota.checkReferer, dota.getNews);
+    router.get('/dota/news/:id', dota.checkReferer, dota.getNewsDetail);
+    router.get('/dota/leagues', dota.checkReferer, dota.getLeagues);
+    router.get('/dota/schedules', dota.checkReferer, dota.getSchedules);
+    router.get('/dota/teams', dota.checkReferer, dota.getTeams);
+    router.get('/dota/items', dota.checkReferer, dota.getItems);
+    router.get('/dota/items/:id', dota.checkReferer, dota.getItemDetail);
+    router.get('/dota/heroes', dota.checkReferer, dota.getHeros);
+    router.get('/dota/heroes/:id', dota.checkReferer, dota.getHeroDetail);
+    router.get('/dota/leaderboard', dota.checkReferer, dota.getLeaderboard);
 
     router.get('/clipboard/wx/session', clipboard.getWxSession);
     router.get('/clipboard/notification', clipboard.getNotification);

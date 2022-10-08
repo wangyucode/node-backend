@@ -1,6 +1,7 @@
-import { Context } from "koa";
+import { Context, Next } from "koa";
+import { ADMIN_EMAIL, email } from "../mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "../mongo";
-import { getDataResult, getErrorResult } from "../utils";
+import { getDataResult, getErrorResult, isProd } from "../utils";
 
 export async function getLeaderboard(ctx: Context) {
     let page = Number.parseInt(ctx.query.page as string);
@@ -27,7 +28,9 @@ export async function getNews(ctx: Context) {
     if (Number.isNaN(size) || size <= 0) ctx.throw(400, 'size required');
     if (Number.isNaN(page) || page < 0) page = 0;
     const nc = db.collection(COLLECTIONS.DOTA_NEWS);
-    const result = nc.find(null, {
+    const version = await db.collection(COLLECTIONS.CONFIG).findOne({ _id: CONFIG_KEYS.CONFIG_DOTA_VERSION });
+    const filter = version.value === 'preview' ? { preview: true } : null;
+    const result = nc.find(filter, {
         projection: {
             href: '$_id',
             _id: 0,
@@ -136,4 +139,13 @@ export async function getHeroDetail(ctx: Context) {
         }
     }
     ctx.body = getDataResult(result);
+}
+
+export async function checkReferer(ctx: Context, next: Next) {
+    if (isProd()
+        && ctx.headers.referer
+        && ctx.headers.referer.match(/^https:\/\/servicewechat.com\/(\w+)\/.*$/)[1] !== process.env.WX_APPID_DOTA) {
+        email(ADMIN_EMAIL, 'unrecognized access to DOTA API', ctx.headers.referer);
+    }
+    await next();
 }
