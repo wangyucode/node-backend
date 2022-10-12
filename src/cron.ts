@@ -14,7 +14,6 @@ export default function setupCron() {
     const weeklyJob = new CronJob('0 0 10 * * 2', function () {
         logger.info("weeklyJob started!");
         getLeaderBoard();
-        getTeams();
         removeOldNews();
     });
     logger.info('weeklyJob->', weeklyJob.nextDates(3));
@@ -45,30 +44,6 @@ async function getLeaderBoard() {
         await setConfig(ctx);
     }
 }
-
-async function getTeams() {
-    const url = Buffer.from('aHR0cHM6Ly9kYXRhc2VydmljZS1zZWMudnBnYW1lLmNvbS9kb3RhMi9wcm8vd2Vic2VydmljZS90aTEwL3RlYW0vbGlzdD9nYW1lX3R5cGU9ZG90YSZsaW1pdD0zMA==', "base64").toString('utf-8');
-    logger.info(url);
-    const res = await axios.get(url);
-    const teams = res.data.data.map(it => ({
-        name: it.team.name,
-        logo: it.team.logo,
-        nation: it.team.nation,
-        rank: it.rank,
-        point: it.integral
-    }));
-    logger.info('getTeams->', teams.length);
-
-    const ctx: any = {
-        query: {
-            k: CONFIG_KEYS.CONFIG_DOTA_TEAMS,
-            v: teams
-        }
-    }
-
-    await setConfig(ctx);
-}
-
 
 async function removeOldNews() {
     const nc = db.collection(COLLECTIONS.DOTA_NEWS);
