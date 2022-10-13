@@ -1,4 +1,5 @@
 import { Context, Next } from "koa";
+import { logger } from "../log";
 import { ADMIN_EMAIL, email } from "../mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "../mongo";
 import { getDataResult, getErrorResult, isProd } from "../utils";
@@ -142,10 +143,8 @@ export async function getHeroDetail(ctx: Context) {
 }
 
 export async function checkReferer(ctx: Context, next: Next) {
-    if (isProd()
-        && ctx.headers.referer
-        && ctx.headers.referer.match(/^https:\/\/servicewechat.com\/(\w+)\/.*$/)[1] !== process.env.WX_APPID_DOTA) {
-        email(ADMIN_EMAIL, 'unrecognized access to DOTA API', ctx.headers.referer);
+    if (ctx.headers.referer && ctx.headers.referer.match(/^https:\/\/servicewechat.com\/(\w+)\/.*$/)[1] !== process.env.WX_APPID_DOTA) {
+        logger.error('unrecognized access to DOTA API', ctx.headers.referer);
     }
     await next();
 }
