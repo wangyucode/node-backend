@@ -123,11 +123,11 @@ async function removeOldErrors() {
 
 async function processRecord(record: AccessRecord): Promise<void> {
     pv++;
-    if (record.status >= 400) fv++;
     uv.add(record.ip);
 
     // invaild request
-    if (!record.url || record.status >= 400) {
+    if (!record.url || record.status !== 200) {
+        fv++
         await saveError(record);
         return;
     }

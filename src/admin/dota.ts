@@ -25,8 +25,13 @@ export async function postNews(ctx: Context) {
 }
 
 export async function putLeagues(ctx: Context) {
-    if (!ctx.request.body.length) ctx.throw(400, 'Invalid body length');
     ctx.query.k = CONFIG_KEYS.CONFIG_DOTA_LEAGUES;
+    ctx.query.v = ctx.request.body;
+    await setConfig(ctx);
+}
+
+export async function putTeams(ctx: Context) {
+    ctx.query.k = CONFIG_KEYS.CONFIG_DOTA_TEAMS;
     ctx.query.v = ctx.request.body;
     await setConfig(ctx);
 }
