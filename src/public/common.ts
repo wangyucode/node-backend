@@ -106,7 +106,7 @@ export async function sendNotification(ctx: Context) {
     if (!content) ctx.throw(400, 'content is required');
     if (key !== process.env.MAIL_PASSWORD) ctx.throw(403, 'invalid key');
     if (isEmpty(to)) to = ADMIN_EMAIL;
-    await email(to, ctx.query.s as string, ctx.query.c as string);
+    await email(to, subject, content);
     ctx.status = 200;
 }
 
@@ -116,5 +116,5 @@ export async function getAppStatus(ctx: Context) {
 
     const appStatus = await db.collection(COLLECTIONS.CONFIG).findOne({_id: CONFIG_KEYS.CONFIG_APP_STATUS});
 
-    return get(appStatus, `${ctx.query.a}.previewVersion`) === ctx.query.v;
+    ctx.body = getDataResult(get(appStatus, `${ctx.query.a}.previewVersion`) === ctx.query.v);
 }

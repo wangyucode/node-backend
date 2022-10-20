@@ -1,4 +1,3 @@
-import {last} from "lodash";
 import { logger } from "./log";
 import { ADMIN_EMAIL, email } from "./mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "./mongo";
@@ -27,17 +26,5 @@ export default async function applyPatch() {
 }
 
 async function doPatch(): Promise<any> {
-    const accesses = await db.collection(COLLECTIONS.ACCESS_COUNT).find({}).toArray();
-
-    const tasks =  accesses.map(access => {
-        const lastRecord = last(access.records);
-        if(lastRecord && lastRecord.date === '2022-10-04'){
-            lastRecord.date = '10/4';
-            return db.collection(COLLECTIONS.ACCESS_COUNT).updateOne({_id: access._id}, {$set: {records: access.records}});
-            
-        }
-    });
-
-    await Promise.all(tasks);
-    return tasks.length;
+    return 0;
 }
