@@ -154,7 +154,7 @@ async function processRecord(record: AccessRecord): Promise<void> {
         // ignore static files
     } else if (/^\/blog\/(page)|(tag)|(category)\/.*$/.test(record.url)) {
         // ignore /blog/page, /blog/tag, /blog/category
-    } else if (['/','/lab/','/about/','/admin/','/admin/mongo/'].some(it => it === record.url)) {
+    } else if (['/', '/lab/', '/clipboard/', '/about/', '/admin/', '/admin/mongo/'].some(it => it === record.url)) {
         // ignore
     } else if (record.url.startsWith('/mongo')) {
         // ignore
