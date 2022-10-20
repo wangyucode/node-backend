@@ -1,9 +1,9 @@
-import { isEmpty } from "lodash";
+import { get, isEmpty } from "lodash";
 import { ObjectId } from "bson";
 import { Context } from "koa";
 import { logger } from "../log";
 import { ADMIN_EMAIL, email } from "../mail";
-import { COLLECTIONS, db } from "../mongo";
+import { COLLECTIONS, CONFIG_KEYS, db } from "../mongo";
 import { getDataResult, getErrorResult, isProd } from "../utils";
 
 export async function getConfig(ctx: Context) {
@@ -108,4 +108,13 @@ export async function sendNotification(ctx: Context) {
     if (isEmpty(to)) to = ADMIN_EMAIL;
     await email(to, ctx.query.s as string, ctx.query.c as string);
     ctx.status = 200;
+}
+
+export async function getAppStatus(ctx: Context) {
+    if (!ctx.query.a) ctx.throw(400, 'a required');
+    if (!ctx.query.v) ctx.throw(400, 'v required');
+
+    const appStatus = await db.collection(COLLECTIONS.CONFIG).findOne({_id: CONFIG_KEYS.CONFIG_APP_STATUS});
+
+    return get(appStatus, `${ctx.query.a}.previewVersion`) === ctx.query.v;
 }
