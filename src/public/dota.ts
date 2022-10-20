@@ -38,7 +38,8 @@ export async function getNews(ctx: Context) {
             img: 1,
             title: 1,
             content: 1,
-            date: 1
+            date: 1,
+            preview: 1
         },
         sort: {
             date: -1,
