@@ -26,12 +26,12 @@ export async function getLeaderboard(ctx: Context) {
 export async function getNews(ctx: Context) {
     let page = Number.parseInt(ctx.query.page as string);
     let size = Number.parseInt(ctx.query.size as string);
+    let version = ctx.query.version as string;
     if (Number.isNaN(size) || size <= 0) ctx.throw(400, 'size required');
     if (Number.isNaN(page) || page < 0) page = 0;
-    const nc = db.collection(COLLECTIONS.DOTA_NEWS);
-    const version = await db.collection(COLLECTIONS.CONFIG).findOne({ _id: CONFIG_KEYS.CONFIG_DOTA_VERSION });
-    const filter = version.value === 'preview' ? { preview: true } : null;
-    const result = nc.find(filter, {
+    const dota = await db.collection(COLLECTIONS.WECHAT_APP).findOne({ _id: 'dota' });
+    const filter = (version && dota.previewVersion === version) ? { preview: true } : null;
+    const result = db.collection(COLLECTIONS.DOTA_NEWS).find(filter, {
         projection: {
             href: '$_id',
             _id: 0,

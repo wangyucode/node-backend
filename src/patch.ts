@@ -26,12 +26,6 @@ export default async function applyPatch() {
 }
 
 async function doPatch(): Promise<any> {
-    const a = await db.collection(COLLECTIONS.COMMENT).find({topic: {$regex: /[\w-]+\.html$/}}).toArray();
-    const b = a.map(it => {
-        const topic = it.topic.match(/([\w-]+)\.html$/)[1];
-        return db.collection(COLLECTIONS.COMMENT).updateOne({_id:it._id}, {$set: {topic}});
-    });
-
-    await Promise.all(b);
-    return b.length;
+    
+    return 0;
 }
