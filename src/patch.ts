@@ -3,7 +3,7 @@ import { ADMIN_EMAIL, email } from "./mail";
 import { COLLECTIONS, CONFIG_KEYS, db } from "./mongo";
 import { isProd } from "./utils";
 
-const PATCH_RECORD_NUM = 6;
+const PATCH_RECORD_NUM = 7;
 
 export default async function applyPatch() {
     const patchRecord = await db.collection(COLLECTIONS.CONFIG).findOne({ _id: CONFIG_KEYS.CONFIG_PATCH_RECORD });
@@ -26,5 +26,12 @@ export default async function applyPatch() {
 }
 
 async function doPatch(): Promise<any> {
-    return 0;
+    const a = await db.collection(COLLECTIONS.COMMENT).find({topic: {$regex: /[\w-]+\.html$/}}).toArray();
+    const b = a.map(it => {
+        const topic = it.topic.match(/([\w-]+)\.html$/)[1];
+        return db.collection(COLLECTIONS.COMMENT).updateOne({_id:it._id}, {$set: {topic}});
+    });
+
+    await Promise.all(b);
+    return b.length;
 }
