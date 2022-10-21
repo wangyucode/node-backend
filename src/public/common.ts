@@ -1,9 +1,9 @@
-import { get, isEmpty } from "lodash";
+import { isEmpty } from "lodash";
 import { ObjectId } from "bson";
 import { Context } from "koa";
 import { logger } from "../log";
 import { ADMIN_EMAIL, email } from "../mail";
-import { COLLECTIONS, CONFIG_KEYS, db } from "../mongo";
+import { COLLECTIONS, db } from "../mongo";
 import { getDataResult, getErrorResult, isProd } from "../utils";
 
 export async function getConfig(ctx: Context) {
@@ -114,7 +114,11 @@ export async function getAppStatus(ctx: Context) {
     if (!ctx.query.a) ctx.throw(400, 'a required');
     if (!ctx.query.v) ctx.throw(400, 'v required');
 
-    const appStatus = await db.collection(COLLECTIONS.CONFIG).findOne({_id: CONFIG_KEYS.CONFIG_APP_STATUS});
+    const appStatus = await db.collection(COLLECTIONS.WECHAT_APP).findOne({_id: ctx.query.a});
 
-    ctx.body = getDataResult(get(appStatus, `${ctx.query.a}.previewVersion`) === ctx.query.v);
+    ctx.body = getDataResult(appStatus?.previewVersion === ctx.query.v);
+}
+
+export async function getRecommendedApps(ctx: Context) {
+    ctx.body = getDataResult(await db.collection(COLLECTIONS.WECHAT_APP).find().toArray());
 }
