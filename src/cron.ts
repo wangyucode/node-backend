@@ -57,7 +57,7 @@ async function removeOldNews() {
         const news = await result.next();
         const date = new Date(news.date);
         // if news date > 150 days
-        if (new Date().getTime() - date.getTime() > 24 * 3600 * 1000 * 180) {
+        if (new Date().getTime() - date.getTime() > 24 * 3600 * 1000 * 365) {
             await nc.deleteOne({ _id: news._id });
             logger.info('remove news:', date);
         } else {
