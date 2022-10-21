@@ -119,6 +119,8 @@ export async function getAppStatus(ctx: Context) {
     ctx.body = getDataResult(appStatus?.previewVersion === ctx.query.v);
 }
 
-export async function getRecommendedApps(ctx: Context) {
-    ctx.body = getDataResult(await db.collection(COLLECTIONS.WECHAT_APP).find().toArray());
+export async function getWechatApps(ctx: Context) {
+    const appid = ctx.headers.referer?.match(/^https:\/\/servicewechat.com\/(\w+)\/.*$/)[1];
+    if (!appid) logger.error('getWechatApps referer->', ctx.headers.referer);
+    ctx.body = getDataResult(await db.collection(COLLECTIONS.WECHAT_APP).find({appid: {$not : {$eq: appid}}}).toArray());
 }
