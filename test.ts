@@ -2,12 +2,12 @@
 
 import { connectToDb} from "./src/mongo";
 import { Context } from "koa";
-import { getAppStatus, getRecommendedApps } from "./src/public/common";
+import { getWechatApps } from "./src/public/common";
 
 async function test() {
     await connectToDb();
-    const context: Context = {query: {a:'dota', v:'1.8'}} as any;
-    await getAppStatus(context);
+    const context: Context = {headers: {referer: 'https://servicewechat.com/wx8a383e1143f5b2c9/devtools/page-frame.html'}} as any;
+    await getWechatApps(context);
     debugger;
     process.exit(0);
 }
