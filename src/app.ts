@@ -10,6 +10,7 @@ import getRouter from './router';
 import setupCron from './cron';
 import applyPatch from './patch';
 import { email, ADMIN_EMAIL } from './mail';
+import { init as initDealer} from './public/dealer';
 
 function startHttpServer() {
     // koa server
@@ -22,8 +23,11 @@ function startHttpServer() {
                 await next();
             } catch (err) {
                 // will only respond with JSON
-                ctx.status = err.status || 500;
-                ctx.body = getErrorResult(err.message || JSON.stringify(err));
+                const code = err.status || 500;
+                const message = err.message || JSON.stringify(err);
+                ctx.status = code;
+                ctx.body = getErrorResult(message);
+                if (code=== 500) email(ADMIN_EMAIL, `node-backend 未处理的错误`, message);
             }
         })
         .use(bodyParser())
@@ -34,6 +38,7 @@ function startHttpServer() {
 
 connectToDb()
     .then(applyPatch)
+    .then(initDealer)
     .then(startHttpServer)
     .then(setupCron)
     .then(() => {

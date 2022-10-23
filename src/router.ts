@@ -7,8 +7,8 @@ import * as auth from './auth';
 import * as admin_dota from './admin/dota';
 import * as dota from './public/dota';
 import * as clipboard from './public/clipboard';
-// import * as a11 from './public/a11'
 import * as analysis from './public/analysis'
+import * as dealer from './public/dealer';
 
 export default function getRouter(): Router {
     const router = new Router({ prefix: '/node' });
@@ -42,10 +42,12 @@ export default function getRouter(): Router {
     router.get('/analysis/records', analysis.getRecords);
     router.get('/analysis/errors', analysis.getErrors);
 
-    // router.get('/a11/sign', a11.getWxSign);
+    router.get('/dealer/login', dealer.login);
+    router.get('/dealer/create', dealer.create);
+    router.get('/dealer/join', dealer.join);
+    router.get('/dealer/status', dealer.status);
 
     router.get('/login', auth.login);
-
     // Middleware below this line is only reached if JWT token is valid
     router.use(jwt({ secret: process.env.JWT_SECRET }));
 

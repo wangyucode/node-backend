@@ -6,6 +6,7 @@ import { processNginxLog } from './analysis/nginx-log';
 import { COLLECTIONS, CONFIG_KEYS, db } from './mongo';
 import { logger } from './log';
 import { isProd } from './utils';
+import { clearRooms } from './public/dealer';
 
 
 export default function setupCron() {
@@ -22,7 +23,8 @@ export default function setupCron() {
     // 00:00:00 every day
     const dailyJob = new CronJob('0 0 0 * * *', function () {
         logger.info("dailyJob started!");
-        processNginxLog()
+        processNginxLog();
+        clearRooms();
     });
     logger.info('dailyJob->', dailyJob.nextDates(3));
     dailyJob.start();
