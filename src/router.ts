@@ -46,6 +46,7 @@ export default function getRouter(): Router {
     router.get('/dealer/create', dealer.create);
     router.get('/dealer/join', dealer.join);
     router.get('/dealer/status', dealer.status);
+    router.get('/dealer/exit', dealer.exit);
 
     router.get('/login', auth.login);
     // Middleware below this line is only reached if JWT token is valid
