@@ -7,9 +7,17 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch test",
             "program": "${workspaceFolder}/node_modules/ts-node/dist/bin.js",
             "args": ["test.ts"],
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch app",
+            "program": "${workspaceFolder}/node_modules/ts-node/dist/bin.js",
+            "args": ["src/app.ts"],
             "sourceMaps": true
         }
     ]

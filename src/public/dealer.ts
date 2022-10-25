@@ -69,19 +69,21 @@ export async function join(ctx: Context) {
     const room = activeRooms.get(roomId);
     if (!room) ctx.throw(404, '房间未找到');
     if (room.type !== type) ctx.throw(400, '房间类型错误');
+    if (!player) ctx.throw(401, '未登录');
+    if (player.roomId > 0) ctx.throw(420, '你已经在房间中了');
 
     const seat = room.players.length + 1
     room.players.push(player);
     room.messages.push(new Message(2, { playerId: player.id, seat }));
     room.timestamp = new Date().getTime();
-    ctx.body = getDataResult(seat);
+    ctx.body = getDataResult(room.id);
 }
 
 export async function exit(ctx: Context) {
     if (!ctx.query.rid) ctx.throw(400, 'rid required');
     if (!ctx.query.pid) ctx.throw(400, 'pid required');
     let player = players.get(ctx.query.pid as string);
-    const roomId = Number.parseInt(ctx.query.id as string);
+    const roomId = Number.parseInt(ctx.query.rid as string);
     const room = activeRooms.get(roomId);
     if (!room) ctx.throw(404, '房间未开启');
 
