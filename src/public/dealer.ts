@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Context } from "koa";
 import Message from "../dealer/message";
 import Player from "../dealer/player";
@@ -22,12 +23,17 @@ export function init() {
 
 export async function login(ctx: Context) {
     if (!ctx.query.code) ctx.throw(400, 'code required');
-    const { openid } = await getSession(process.env.WX_APPID_DEALER, process.env.WX_SECRET_DEALER, ctx.query.code as string);
-    if (openid) {
-        let player = players.get(openid);
+    let pid = null;
+    if (ctx.query.code === 'wycode.cn') {
+        pid = randomUUID();
+    } else {
+        pid = (await getSession(process.env.WX_APPID_DEALER, process.env.WX_SECRET_DEALER, ctx.query.code as string)).openid;
+    }
+    if (pid) {
+        let player = players.get(pid);
         if (!player) {
-            player = new Player(openid);
-            players.set(openid, player);
+            player = new Player(pid);
+            players.set(pid, player);
         }
         ctx.body = getDataResult(player);
     } else {
@@ -101,15 +107,21 @@ export async function exit(ctx: Context) {
     if (room.players.length === 0) clearRoom(room);
 }
 
-export async function status(ctx: Context) {
-    let totalPlayerCount = 0;
-    for (const entry of activeRooms) {
-        totalPlayerCount += entry[1].players.length;
-    }
+export async function messages(ctx: Context) {
+    if (!ctx.query.rid) ctx.throw(400, 'rid required');
+    if (!ctx.query.index) ctx.throw(400, 'index required');
+    const roomId = Number.parseInt(ctx.query.rid as string);
+    const index = Number.parseInt(ctx.query.index as string);
+    const room = activeRooms.get(roomId);
+    if (!room) ctx.throw(404, '房间未开启');
 
+    ctx.body = getDataResult(room.messages.slice(index));
+}
+
+export async function status(ctx: Context) {
     ctx.body = getDataResult({
         room: activeRooms.size,
-        player: totalPlayerCount
+        player: players.size
     });
 }
 

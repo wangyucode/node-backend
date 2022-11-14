@@ -7,5 +7,5 @@ export default class Message {
      *  2: player join
      *  3: player exit
      */
-    constructor(public type: number, public message: object) {}
+    constructor(public type: number, public data: object) {}
 }
